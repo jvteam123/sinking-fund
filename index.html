@@ -32,7 +32,7 @@
         .ledger-wrapper { overflow: auto; max-height: 500px; border-radius: 12px; border: 1px solid #f1f5f9; }
         .table thead th { background: #f8fafc; color: #475569; font-weight: 600; font-size: 0.7rem; border-bottom: 2px solid #f1f5f9; }
         
-        /* Fixed Heights for stability */
+        /* Layout Stability */
         .fixed-height-card { height: 750px; display: flex; flex-direction: column; }
         .audit-scroll { flex-grow: 1; overflow-y: auto; background: #fafbfc; border-radius: 12px; padding: 10px; }
 
@@ -58,11 +58,8 @@
         .log-entry { font-size: 0.7rem; padding: 10px; border-bottom: 1px solid #f1f5f9; }
         .log-meta { display: flex; justify-content: space-between; font-weight: 700; font-size: 0.65rem; margin-bottom: 3px; }
 
-        /* Pagination Styling */
         .loan-pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: auto; padding-top: 15px; }
-        .page-btn { border: 1px solid #e2e8f0; background: white; padding: 5px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
-        .page-btn:hover { background: #f1f5f9; }
-        .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .page-btn { border: 1px solid #e2e8f0; background: white; padding: 5px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
         .page-info { font-size: 0.75rem; font-weight: 800; color: #64748b; }
 
         .month-chip { display: inline-block; padding: 6px 14px; border-radius: 10px; font-size: 0.75rem; background: #f1f5f9; color: #475569; margin: 2px; cursor: pointer; border: 1px solid transparent; font-weight: 500; }
@@ -71,9 +68,17 @@
         .member-hero { background: var(--member-grad); color: white; padding: 2.5rem; border-radius: 24px; margin-bottom: 2rem; position: relative; overflow: hidden; }
         .fund-card { background: white; border-radius: 18px; padding: 1.5rem; border: 1px solid #e2e8f0; height: 100%; }
         .slot-pill { font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; background: #e2e8f0; color: #475569; font-weight: 700; margin-left: 5px; }
+
+        /* Toast Styling */
+        .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
+        .custom-toast { background: #1e293b; color: white; padding: 12px 24px; border-radius: 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-top: 10px; transform: translateX(120%); transition: transform 0.3s ease-in-out; }
+        .custom-toast.show { transform: translateX(0); }
+        .toast-icon { color: #10b981; }
     </style>
 </head>
 <body>
+
+<div class="toast-container" id="toastContainer"></div>
 
 <nav id="topNav" class="navbar sticky-top" style="display:none">
     <div class="container-fluid d-flex justify-content-between align-items-center">
@@ -221,9 +226,22 @@
     const db = firebase.firestore();
     let appData = { settings: { contri: 100, interest: 5 }, members: [], cycles: ["Jan"], hiddenMonths: [], loans: [], profit: 0, logs: [] };
     
-    // Pagination State
     let currentLoanPage = 1;
     const loansPerPage = 3;
+
+    // NOTIFICATION SYSTEM
+    function notify(msg, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'custom-toast';
+        toast.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle toast-icon':'fa-info-circle'}"></i> <span>${msg}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 100);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
 
     function calculateCash() {
         let totalS = 0; 
@@ -312,16 +330,13 @@
         const loans = appData.loans || [];
         const totalPages = Math.ceil(loans.length / loansPerPage) || 1;
         if (currentLoanPage > totalPages) currentLoanPage = totalPages;
-
         const start = (currentLoanPage - 1) * loansPerPage;
-        const end = start + loansPerPage;
-        const pageLoans = loans.slice(start, end);
+        const pageLoans = loans.slice(start, start + loansPerPage);
 
         document.getElementById('loanLedgerList').innerHTML = pageLoans.map((l, idx) => {
             const originalIndex = start + idx;
             const interestAmt = l.principal * (appData.settings.interest / 100);
-            return `
-            <div class="loan-card-styled">
+            return `<div class="loan-card-styled">
                 <div class="loan-header-row">
                     <div><h4 class="loan-name">${l.borrower}</h4><div class="loan-ref">Ref: #LN-${originalIndex+100}</div></div>
                     <span class="loan-status-badge">PENDING</span>
@@ -347,10 +362,7 @@
         `;
     }
 
-    function changeLoanPage(step) {
-        currentLoanPage += step;
-        renderPaginatedLoans();
-    }
+    function changeLoanPage(step) { currentLoanPage += step; renderPaginatedLoans(); }
 
     function renderMember(user) {
         const m = appData.members.find(x => x.email.toLowerCase() === user.email.toLowerCase());
@@ -373,17 +385,29 @@
         document.getElementById('paymentTimeline').innerHTML = m.payments.map((p, i) => `<div class="col"><div class="payment-box ${p?'paid':'pending'} small">${appData.cycles[Math.floor(i/2)]} ${i%2===0?'15th':'30th'}<br><b>${p?'PAID':'--'}</b></div></div>`).join('');
     }
 
-    function confirmPayment(mi, pi) { appData.members[mi].payments[pi] = !appData.members[mi].payments[pi]; logAction(`Ledger Update: ${appData.members[mi].name}`); save(); }
+    function confirmPayment(mi, pi) { 
+        appData.members[mi].payments[pi] = !appData.members[mi].payments[pi]; 
+        logAction(`Ledger Update: ${appData.members[mi].name}`); 
+        save();
+        notify("Payment Status Updated");
+    }
+
     function toggleH(m) { if(!appData.hiddenMonths) appData.hiddenMonths = []; if(appData.hiddenMonths.includes(m)) appData.hiddenMonths = appData.hiddenMonths.filter(x => x!==m); else appData.hiddenMonths.push(m); renderAdmin(); }
+    
     function releaseLoan() {
         const type = document.getElementById('loanTypeSelect').value;
         const n = type === 'member' ? document.getElementById('loanMemberSelect').value : document.getElementById('guestNameInput').value;
         const a = Number(document.getElementById('loanAmtInput').value);
         if(n && a) { 
             const d = new Date(); const ds = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
-            appData.loans.push({borrower:n, principal:a, date: ds}); logAction(`Loan Release: ₱${a} to ${n}`); save(); 
+            appData.loans.push({borrower:n, principal:a, date: ds}); 
+            logAction(`Loan Release: ₱${a} to ${n}`); 
+            save(); 
+            notify(`Loan Approved for ${n}`);
+            document.getElementById('loanAmtInput').value = '';
         }
     }
+
     function partial(i) {
         const amt = Number(prompt(`Amortize ${appData.loans[i].borrower}:`));
         if(amt > 0 && amt <= appData.loans[i].principal) {
@@ -392,16 +416,21 @@
             logAction(`Partial Pay: ${appData.loans[i].borrower} ₱${amt}`);
             if(appData.loans[i].principal <= 0) appData.loans.splice(i,1);
             save();
+            notify("Payment Processed Successfully");
         }
     }
+
     function full(i) {
         if(confirm("Settle full?")) {
+            const name = appData.loans[i].borrower;
             appData.profit += (appData.loans[i].principal * (appData.settings.interest/100));
-            logAction(`Full Settlement: ${appData.loans[i].borrower}`);
+            logAction(`Full Settlement: ${name}`);
             appData.loans.splice(i,1);
             save();
+            notify(`Liability Cleared: ${name}`);
         }
     }
+
     function openMemberManager() {
         let h = '<div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th class="ps-4">MEMBER</th><th>SLOTS</th><th>STATUS</th><th class="text-end pe-4">ACTIONS</th></tr></thead><tbody>';
         appData.members.forEach((m, i) => {
@@ -410,14 +439,39 @@
         document.getElementById('memberManagerList').innerHTML = h + '</tbody></table></div>';
         new bootstrap.Modal(document.getElementById('memberManagerModal')).show();
     }
-    function banM(i) { appData.members[i].banned = !appData.members[i].banned; save(); openMemberManager(); }
-    function deleteM(i) { if(confirm("Delete?")) { appData.members.splice(i,1); save(); openMemberManager(); } }
-    function autoAddNextMonth() { const last = appData.cycles[appData.cycles.length - 1]; const next = monthNames[(monthNames.indexOf(last) + 1) % 12]; appData.cycles.push(next); appData.members.forEach(m => m.payments.push(false, false)); save(); }
+
+    function banM(i) { appData.members[i].banned = !appData.members[i].banned; save(); openMemberManager(); notify("Member Status Changed"); }
+    function deleteM(i) { if(confirm("Delete?")) { appData.members.splice(i,1); save(); openMemberManager(); notify("Member Removed"); } }
+    
+    function autoAddNextMonth() { 
+        const last = appData.cycles[appData.cycles.length - 1]; 
+        const next = monthNames[(monthNames.indexOf(last) + 1) % 12]; 
+        appData.cycles.push(next); 
+        appData.members.forEach(m => m.payments.push(false, false)); 
+        save(); 
+        notify(`Financial Cycle: ${next} Initiated`);
+    }
+
     function toggleLoanInputs() { const isG = document.getElementById('loanTypeSelect').value === 'guest'; document.getElementById('memberSelectWrap').classList.toggle('d-none', isG); document.getElementById('guestInputWrap').classList.toggle('d-none', !isG); }
-    function updateSettings() { appData.settings.contri = Number(document.getElementById('setConfigAmount').value); appData.settings.interest = Number(document.getElementById('setConfigInterest').value); save(); alert("Settings Updated"); }
-    function addMember() { const n = prompt("Name:"); const e = prompt("Email:"); const s = prompt("Slots:", "1"); if(n && e) { appData.members.push({name:n, email:e.toLowerCase(), slots: Number(s), payments: new Array(appData.cycles.length*2).fill(false), carryOver:0, banned: false}); save(); } }
-    function exportBackup() { const blob = new Blob([JSON.stringify(appData)], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `MSF_Backup.json`; a.click(); }
-    function importBackup() { const r = new FileReader(); r.onload = (e) => { appData = JSON.parse(e.target.result); save(); }; r.readAsText(document.getElementById('importFile').files[0]); }
+    
+    function updateSettings() { 
+        appData.settings.contri = Number(document.getElementById('setConfigAmount').value); 
+        appData.settings.interest = Number(document.getElementById('setConfigInterest').value); 
+        save(); 
+        notify("Global Settings Updated"); 
+    }
+
+    function addMember() { 
+        const n = prompt("Name:"); const e = prompt("Email:"); const s = prompt("Slots:", "1"); 
+        if(n && e) { 
+            appData.members.push({name:n, email:e.toLowerCase(), slots: Number(s), payments: new Array(appData.cycles.length*2).fill(false), carryOver:0, banned: false}); 
+            save(); 
+            notify(`Account Created: ${n}`);
+        } 
+    }
+
+    function exportBackup() { const blob = new Blob([JSON.stringify(appData)], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `MSF_Backup.json`; a.click(); notify("Backup Exported"); }
+    function importBackup() { const r = new FileReader(); r.onload = (e) => { appData = JSON.parse(e.target.result); save(); notify("Backup Restored Successfully"); }; r.readAsText(document.getElementById('importFile').files[0]); }
     async function secureSystemWipe() { if (btoa(prompt("PIN:")) === WIPE_PIN) { if(confirm("WIPE?")) { await db.collection("system").doc("main").set({ settings: { contri: 100, interest: 5 }, members: [], cycles: ["Jan"], loans: [], profit: 0, logs: [] }); location.reload(); } } }
     function exportFullDataToSpreadsheet() {
         let csv = "TYPE,NAME,EMAIL,BALANCE,SLOTS\n";
@@ -427,6 +481,7 @@
         });
         const blob = new Blob([csv], { type: 'text/csv' });
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `MSF_Export.csv`; a.click();
+        notify("Spreadsheet Downloaded");
     }
 </script>
 </body>
