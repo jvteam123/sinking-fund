@@ -580,13 +580,20 @@
     }
 
     function exportFullSpreadsheet() {
-        let csv = "--- MEMBER SUMMARY ---\n";
-        csv += "NAME,EMAIL,SLOTS,CARRY OVER,TOTAL CONTRIBUTION\n";
+        let csv = "--- MEMBER FINANCIAL SUMMARY ---\n";
+        csv += "NAME,EMAIL,SLOTS,CARRY OVER,TOTAL CONTRIBUTION,DIVIDEND SHARE,TOTAL EQUITY\n";
         
+        let totalSystemPrincipal = 0;
         appData.members.forEach(m => {
-            let total = Number(m.carryOver || 0);
-            m.payments.forEach(p => { if(p) total += (appData.settings.contri * m.slots); });
-            csv += `"${m.name}","${m.email}",${m.slots},${m.carryOver},${total}\n`;
+            totalSystemPrincipal += Number(m.carryOver || 0);
+            m.payments.forEach(p => { if(p) totalSystemPrincipal += (appData.settings.contri * m.slots); });
+        });
+
+        appData.members.forEach(m => {
+            let myS = Number(m.carryOver || 0);
+            m.payments.forEach(p => { if(p) myS += (appData.settings.contri * m.slots); });
+            let myShare = (totalSystemPrincipal > 0 ? (myS / totalSystemPrincipal * appData.profit) : 0);
+            csv += `"${m.name}","${m.email}",${m.slots},${m.carryOver},${myS},${myShare.toFixed(2)},${(myS + myShare).toFixed(2)}\n`;
         });
 
         csv += "\n--- DETAILED CONTRIBUTION LEDGER ---\n";
@@ -597,13 +604,13 @@
         appData.members.forEach(m => {
             let row = `"${m.name}"`;
             m.payments.forEach(p => {
-                const amt = p ? (appData.settings.contri * m.slots) : 0;
-                row += `,${amt}`;
+                const status = p ? "PAID" : "UNPAID";
+                row += `,"${status}"`;
             });
             csv += row + "\n";
         });
 
-        csv += "\n--- AUDIT LOGS ---\n";
+        csv += "\n--- SYSTEM AUDIT LOGS ---\n";
         csv += "TIMESTAMP,ADMIN,ACTION,SYSTEM BALANCE\n";
         (appData.logs || []).forEach(l => {
             csv += `"${l.time}","${l.admin}","${l.act.replace(/"/g, '""')}","${l.balance || 'N/A'}"\n`;
