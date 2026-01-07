@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sinking Fund Cloud - v10.4 PRO</title>
+    <title>PH Sinking Fund Cloud v10.5</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -15,7 +15,7 @@
         .card { border-radius: 15px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         #loginPage, #adminDashboard, #memberDashboard, #loadingScreen { display: none; }
         .unpaid-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; background-color: #ffe5e5; color: var(--danger-red); border: 1px solid var(--danger-red); font-weight: bold; }
-        .history-item { border-left: 5px solid var(--success-green); margin-bottom: 12px; padding: 12px; background: white; border-radius: 8px; transition: 0.3s; }
+        .history-item { border-left: 5px solid var(--success-green); margin-bottom: 12px; padding: 12px; background: white; border-radius: 8px; }
         .history-item.unpaid { border-left-color: #dee2e6; color: #adb5bd; }
         .transparency-card { background: linear-gradient(135deg, #003366 0%, #00509d 100%); color: white; }
     </style>
@@ -23,10 +23,15 @@
 <body>
 
 <div id="loadingScreen" class="position-fixed w-100 h-100 bg-white d-flex flex-column align-items-center justify-content-center" style="z-index: 9999; top:0; left:0;">
-    <div class="spinner-border text-primary" role="status"></div>
+    <div id="loader" class="spinner-border text-primary" role="status"></div>
     <h5 class="mt-3 fw-bold text-primary">SF CLOUD SYSTEM</h5>
-    <p id="loadStatus" class="text-muted small">Connecting to PH Cloud Server...</p>
-    <button id="emergencyBtn" class="btn btn-sm btn-outline-danger mt-3 d-none" onclick="location.reload()">Retry Connection</button>
+    <p id="loadStatus" class="text-muted small">Authenticating with PH Server...</p>
+    <div id="debugInfo" class="mt-3 p-3 bg-light rounded d-none" style="max-width: 300px; font-size: 11px;">
+        <b class="text-danger">CONNECTION ERROR DETECTED</b><br>
+        1. Click the "Shield" or "Lock" icon in your browser address bar.<br>
+        2. Disable "Tracking Prevention" or "Shields".<br>
+        3. Refresh the page.
+    </div>
 </div>
 
 <div id="loginPage" class="container py-5 mt-5">
@@ -34,7 +39,7 @@
         <div class="col-md-5">
             <div class="card p-5 text-center shadow-lg">
                 <h1 class="fw-bold text-primary mb-2">SF Login</h1>
-                <p class="text-muted mb-4">Secure Google Authentication</p>
+                <p class="text-muted mb-4">Official Sinking Fund Management</p>
                 <button class="btn btn-outline-dark w-100 py-3 d-flex align-items-center justify-content-center fw-bold" onclick="signIn()">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="22" class="me-3">
                     Sign in with Google
@@ -46,7 +51,7 @@
 
 <nav id="topNav" class="navbar navbar-dark mb-4 d-none sticky-top">
     <div class="container d-flex justify-content-between">
-        <span class="navbar-brand fw-bold">🇵🇭 SF PRO v10.4</span>
+        <span class="navbar-brand fw-bold">🇵🇭 SF PRO v10.5</span>
         <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="signOut()">Logout</button>
     </div>
 </nav>
@@ -55,7 +60,7 @@
     <div class="row mb-4 g-3 text-white">
         <div class="col-md-4"><div class="card p-3 bg-primary"><h6>Total Fund</h6><h2 id="admTotalColl">₱0</h2></div></div>
         <div class="col-md-4"><div class="card p-3 bg-danger"><h6>Active Loans</h6><h2 id="admTotalLoans">₱0</h2></div></div>
-        <div class="col-md-4"><div class="card p-3 bg-success"><h6>Cash Remaining</h6><h2 id="admCashHand">₱0</h2></div></div>
+        <div class="col-md-4"><div class="card p-3 bg-success"><h6>Cash Hand</h6><h2 id="admCashHand">₱0</h2></div></div>
     </div>
 
     <div class="card p-4 mb-4">
@@ -72,11 +77,11 @@
                 <button class="btn btn-sm btn-success" onclick="addNewMonth()">+ Month</button>
             </div>
         </div>
-        <div class="table-responsive"><table class="table table-bordered align-middle"><thead id="tableHead" class="table-light"></thead><tbody id="tableBody"></tbody></table></div>
+        <div class="table-responsive"><table class="table table-bordered"><thead id="tableHead" class="table-light"></thead><tbody id="tableBody"></tbody></table></div>
     </div>
 
     <div class="row">
-        <div class="col-md-4 mb-4">
+        <div class="col-md-6 mb-4">
             <div class="card p-4 border-top border-danger border-5 h-100 shadow-sm">
                 <h5 class="fw-bold text-danger">Release Loan</h5>
                 <select id="loanType" class="form-select mb-2" onchange="toggleLoanInputs()">
@@ -90,17 +95,19 @@
                 <button class="btn btn-danger w-100 fw-bold" onclick="releaseLoan()">APPROVE</button>
             </div>
         </div>
-        <div class="col-md-4 mb-4">
+        <div class="col-md-6 mb-4">
             <div class="card p-4 h-100"><h5>Active Loans</h5><div id="loanLedgerList"></div></div>
         </div>
-        <div class="col-md-4 mb-4">
-            <div class="card p-4 border-top border-dark border-5 h-100">
-                <h5>Settings</h5>
-                <label class="small fw-bold">Contribution Amount</label><input type="number" id="setConfigAmount" class="form-control mb-2">
-                <label class="small fw-bold">Interest Rate (%)</label><input type="number" id="setConfigInterest" class="form-control mb-3">
-                <button class="btn btn-dark btn-sm w-100" onclick="updateSettings()">Apply</button>
-            </div>
+    </div>
+
+    <div class="card p-4 mt-2 shadow-sm border-top border-dark border-5">
+        <h5>Admin Control Panel</h5>
+        <div class="row g-2">
+            <div class="col-6"><label class="small fw-bold">Per Cutoff (₱)</label><input type="number" id="setConfigAmount" class="form-control"></div>
+            <div class="col-6"><label class="small fw-bold">Interest (%)</label><input type="number" id="setConfigInterest" class="form-control"></div>
         </div>
+        <button class="btn btn-dark w-100 mt-3 fw-bold" onclick="updateSettings()">Update Cloud Settings</button>
+        <button class="btn btn-outline-danger btn-sm w-100 mt-4" onclick="resetSystem()">Wipe Database</button>
     </div>
 </div>
 
@@ -112,8 +119,8 @@
                 <h2 id="mDashName" class="fw-bold"></h2>
                 <hr class="bg-white">
                 <div class="row">
-                    <div class="col-6"><small>Savings</small><h4 id="mDashContri">₱0</h4></div>
-                    <div class="col-6"><small>Loan Due</small><h4 id="mDashLoan" class="text-warning">₱0</h4></div>
+                    <div class="col-6"><small>Your Savings</small><h4 id="mDashContri">₱0</h4></div>
+                    <div class="col-6"><small>Current Loan</small><h4 id="mDashLoan" class="text-warning">₱0</h4></div>
                 </div>
             </div>
         </div>
@@ -134,23 +141,25 @@
     };
 
     const ADMIN_EMAIL = "ev.lorens.ebrado@gmail.com";
+    
+    // Safety Watchdog
+    const connTimer = setTimeout(() => {
+        document.getElementById('loader').classList.add('text-danger');
+        document.getElementById('loadStatus').innerHTML = "<b class='text-danger'>BROWSER BLOCK DETECTED</b>";
+        document.getElementById('debugInfo').classList.remove('d-none');
+    }, 8000);
+
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
     let appData = { settings: { contri: 100, interest: 5 }, members: [], cycles: ["Jan"], loans: [], profit: 0 };
 
-    // Connection Watchdog
-    const timeout = setTimeout(() => {
-        document.getElementById('loadStatus').innerHTML = "<b class='text-danger'>Connection Timeout!</b><br>Your browser is blocking the database.";
-        document.getElementById('emergencyBtn').classList.remove('d-none');
-    }, 8000);
-
     auth.onAuthStateChanged(user => {
         if (user) {
-            document.getElementById('loadStatus').innerText = "Authenticating with PH Server...";
+            document.getElementById('loadStatus').innerText = "Syncing Cloud Ledger...";
             db.collection("system").doc("main").onSnapshot(doc => {
-                clearTimeout(timeout);
+                clearTimeout(connTimer);
                 if (doc.exists) appData = doc.data();
                 else db.collection("system").doc("main").set(appData);
                 
@@ -165,10 +174,10 @@
                     renderMember(user);
                 }
             }, err => {
-                document.getElementById('loadStatus').innerHTML = "<b>Firestore Error:</b> " + err.message;
+                document.getElementById('loadStatus').innerHTML = "<b class='text-danger'>Access Denied:</b> " + err.message;
             });
         } else {
-            clearTimeout(timeout);
+            clearTimeout(connTimer);
             document.getElementById('loadingScreen').style.display = 'none';
             showPage('loginPage');
         }
@@ -203,7 +212,7 @@
                 cells += `<td class="text-center"><input type="checkbox" class="form-check-input" ${p?'checked':''} onclick="togglePay(${mIdx},${pIdx})"></td>`;
             });
             totalColl += mSum;
-            body.innerHTML += `<tr>${cells}<td>₱${mSum.toLocaleString()}</td></tr>`;
+            body.innerHTML += `<tr>${cells}<td class="fw-bold">₱${mSum.toLocaleString()}</td></tr>`;
             lSelect.innerHTML += `<option value="${m.name}">${m.name}</option>`;
         });
 
@@ -212,7 +221,7 @@
         appData.loans.forEach((l, idx) => {
             loanVal += l.principal;
             const due = l.principal * (1 + (appData.settings.interest/100));
-            list.innerHTML += `<div class="p-2 border-bottom d-flex justify-content-between"><span>${l.borrower} (₱${due.toLocaleString()})</span><button class="btn btn-sm btn-success py-0" onclick="collectLoan(${idx})">Collect</button></div>`;
+            list.innerHTML += `<div class="p-2 border-bottom d-flex justify-content-between align-items-center"><span>${l.borrower} (₱${due.toLocaleString()})</span><button class="btn btn-sm btn-success py-0" onclick="collectLoan(${idx})">Collect</button></div>`;
         });
 
         document.getElementById('admTotalColl').innerText = `₱${(totalColl + appData.profit).toLocaleString()}`;
@@ -224,7 +233,7 @@
         const member = appData.members.find(m => m.name === user.displayName);
         document.getElementById('userPhoto').src = user.photoURL;
         document.getElementById('mDashName').innerText = user.displayName;
-        if(!member) return document.getElementById('paymentTimeline').innerHTML = "<div class='alert alert-info'>Ask Admin to add you.</div>";
+        if(!member) return document.getElementById('paymentTimeline').innerHTML = `<div class='alert alert-info'>Ask Admin to add you as "${user.displayName}"</div>`;
         let saved = 0; const timeline = document.getElementById('paymentTimeline'); timeline.innerHTML = '';
         member.payments.forEach((p, idx) => {
             const cy = appData.cycles[Math.floor(idx/2)];
@@ -246,7 +255,8 @@
     }
     function addMember() { const n = prompt("Name:"); if(n) { appData.members.push({name: n, payments: new Array(appData.cycles.length*2).fill(false)}); save(); } }
     function addNewMonth() { const m = document.getElementById('newMonthSelect').value; if(m && !appData.cycles.includes(m)) { appData.cycles.push(m); appData.members.forEach(m => m.payments.push(false, false)); save(); } }
-    function updateSettings() { appData.settings.contri = parseFloat(document.getElementById('setConfigAmount').value); appData.settings.interest = parseFloat(document.getElementById('setConfigInterest').value); save(); alert("Settings Updated"); }
+    function updateSettings() { appData.settings.contri = parseFloat(document.getElementById('setConfigAmount').value); appData.settings.interest = parseFloat(document.getElementById('setConfigInterest').value); save(); alert("Saved"); }
+    function resetSystem() { if(confirm("Wipe all data?")) { db.collection("system").doc("main").delete().then(()=>location.reload()); } }
     function toggleLoanInputs() { document.getElementById('memberInputs').classList.toggle('d-none', document.getElementById('loanType').value !== 'member'); document.getElementById('nonInputs').classList.toggle('d-none', document.getElementById('loanType').value !== 'non'); }
     function save() { db.collection("system").doc("main").set(appData); }
 </script>
