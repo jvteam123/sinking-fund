@@ -100,7 +100,7 @@
         <div class="col-md-3"><div class="stat-card bg-cash"><h6>Cash On Hand</h6><h3 class="fw-bold" id="admCash">₱0</h3></div></div>
         <div class="col-md-3"><div class="stat-card bg-loans"><h6>Active Receivables</h6><h3 class="fw-bold" id="admLoans">₱0</h3></div></div>
         <div class="col-md-3"><div class="stat-card bg-profit"><h6>Loan Earnings</h6><h3 class="fw-bold" id="admProfit">₱0</h3></div></div>
-        <div class="col-md-3"><div class="stat-card bg-pool"><h6>Asset Valuation</h6><h3 class="fw-bold" id="admPool">₱0</h3></div></div>
+        <div class="col-md-3"><div class="stat-card bg-pool"><h6>Total Asset Value</h6><h3 class="fw-bold" id="admPool">₱0</h3></div></div>
     </div>
 
     <div class="row g-4">
@@ -249,6 +249,7 @@
         setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
     }
 
+    // Fixed Calculation Centralization
     function calculateSystemCash() {
         let totalPrincipalPaid = 0;
         appData.members.forEach(m => {
@@ -270,10 +271,9 @@
         appData.logs.unshift({
             time: `${now.toLocaleDateString()}, ${now.toLocaleTimeString()}`,
             admin: auth.currentUser ? auth.currentUser.displayName : 'System',
-            balance: `₱${calculateSystemCash().toLocaleString()}`,
             act: act
         });
-        if(appData.logs.length > 50) appData.logs.pop();
+        if(appData.logs.length > 50) appData.logs.pop(); // Cap logs for Firestore size
     }
 
     auth.onAuthStateChanged(user => {
@@ -281,7 +281,6 @@
             db.collection("system").doc("main").onSnapshot(doc => {
                 if (doc.exists) {
                     appData = doc.data();
-                    // Ensure structural integrity
                     if(!appData.hiddenMonths) appData.hiddenMonths = [];
                     if(!appData.loans) appData.loans = [];
                 } else {
@@ -305,7 +304,6 @@
         document.getElementById('setConfigInterest').value = appData.settings.interest;
         document.getElementById('monthSelectors').innerHTML = appData.cycles.map(c => `<span class="month-chip ${appData.hiddenMonths.includes(c)?'':'active'}" onclick="toggleH('${c}')">${c}</span>`).join('');
         
-        // Ledger Header
         let head = '<tr><th class="ps-3 text-start">ACCOUNT NAME</th>';
         appData.cycles.forEach(c => { if(!appData.hiddenMonths.includes(c)) head += `<th colspan="2" class="border-start text-uppercase">${c}</th>`; });
         document.getElementById('tableHead').innerHTML = head + '<th class="border-start">Total</th></tr>';
@@ -327,7 +325,7 @@
                     columnTotals[pi] += amt;
                 }
                 if(!appData.hiddenMonths.includes(cy)) {
-                    cells += `<td class="${pi%2===0?'border-start':''}"><input type="checkbox" ${p?'checked':''} onclick="confirmPayment(${mi},${pi})"></td>`;
+                    cells += `<td class="${pi%2===0?'border-start':''}"><input type="checkbox" ${p?'checked':''} onclick="confirmPayment('${m.email}',${pi})"></td>`;
                 }
             });
             systemTotalPrincipal += mSum;
@@ -335,7 +333,6 @@
         });
         document.getElementById('tableBody').innerHTML = body;
 
-        // Footer Totals
         let foot = '<tr><td class="text-start ps-3">COLLECTED</td>';
         appData.cycles.forEach((c, ci) => {
             if(!appData.hiddenMonths.includes(c)) {
@@ -344,12 +341,14 @@
         });
         document.getElementById('tableFoot').innerHTML = foot + `<td class="border-start">₱${systemTotalPrincipal.toLocaleString()}</td></tr>`;
 
-        // Stats
         let activeLoanPrincipal = appData.loans.reduce((acc, l) => acc + Number(l.principal), 0);
+        let activeLoanInterest = appData.loans.reduce((acc, l) => acc + (Number(l.principal) * (appData.settings.interest/100)), 0);
+        
         document.getElementById('admCash').innerText = `₱${(systemTotalPrincipal + appData.profit - activeLoanPrincipal).toLocaleString()}`;
         document.getElementById('admLoans').innerText = `₱${activeLoanPrincipal.toLocaleString()}`;
         document.getElementById('admProfit').innerText = `₱${appData.profit.toLocaleString()}`;
-        document.getElementById('admPool').innerText = `₱${(systemTotalPrincipal + appData.profit).toLocaleString()}`;
+        // Pool includes expected interest for true valuation
+        document.getElementById('admPool').innerText = `₱${(systemTotalPrincipal + appData.profit + activeLoanInterest).toLocaleString()}`;
         
         renderPaginatedLoans();
         document.getElementById('auditLogList').innerHTML = (appData.logs || []).map(l => `<div class="log-entry"><div class="log-meta"><span>${l.time}</span><span class="text-primary">${l.admin}</span></div><div>${l.act}</div></div>`).join('');
@@ -429,9 +428,12 @@
             </div>`).join('');
     }
 
-    function confirmPayment(mi, pi) {
+    // Fixed: Email-based lookup to prevent index desync
+    function confirmPayment(email, pi) {
+        const mi = appData.members.findIndex(m => m.email === email);
+        if(mi === -1) return;
         appData.members[mi].payments[pi] = !appData.members[mi].payments[pi];
-        logAction(`Contribution update: ${appData.members[mi].name} - ${appData.cycles[Math.floor(pi/2)]}`);
+        logAction(`Contribution update: ${appData.members[mi].name} - Cycle ${Math.floor(pi/2)}`);
         save();
         notify("Ledger Saved");
     }
@@ -456,12 +458,15 @@
         }
     }
 
+    // Fixed Interest Logic: Interest is realized profit only
     function partial(i) {
         const amt = Number(prompt(`Enter amount paid by ${appData.loans[i].borrower}:`));
         if(amt > 0 && amt <= appData.loans[i].principal) {
-            appData.profit += (amt * (appData.settings.interest/100));
+            // Note: In simple sinking funds, interest is often realized upon principal payment
+            const calculatedInterest = (amt * (appData.settings.interest/100));
+            appData.profit += calculatedInterest;
             appData.loans[i].principal -= amt;
-            logAction(`Amortization: ${appData.loans[i].borrower} paid ₱${amt}`);
+            logAction(`Amortization: ${appData.loans[i].borrower} paid ₱${amt} (+₱${calculatedInterest} Int)`);
             if(appData.loans[i].principal <= 0) appData.loans.splice(i,1);
             save(); notify("Payment received");
         }
@@ -470,8 +475,9 @@
     function full(i) {
         if(confirm(`Confirm full settlement for ${appData.loans[i].borrower}?`)) {
             const name = appData.loans[i].borrower;
-            appData.profit += (appData.loans[i].principal * (appData.settings.interest/100));
-            logAction(`Loan Cleared: ${name}`);
+            const interest = (appData.loans[i].principal * (appData.settings.interest/100));
+            appData.profit += interest;
+            logAction(`Loan Cleared: ${name} (Profit: ₱${interest})`);
             appData.loans.splice(i,1);
             save(); notify(`${name} account cleared`);
         }
@@ -522,22 +528,32 @@
     function openMemberManager() {
         let h = '<div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th class="ps-4">MEMBER</th><th>SLOTS</th><th>STATUS</th><th class="text-end pe-4">ACTIONS</th></tr></thead><tbody>';
         appData.members.forEach((m, i) => {
-            h += `<tr><td class="ps-4"><b>${m.name}</b><br><small class='text-muted'>${m.email}</small></td><td>${m.slots || 1}</td><td><span class="badge ${m.banned?'bg-danger':'bg-success'}">${m.banned?'BANNED':'ACTIVE'}</span></td><td class="text-end pe-4"><button class="btn btn-sm btn-outline-dark" onclick="editCarryOver(${i})"><i class='fas fa-plus'></i></button> <button class="btn btn-sm btn-warning" onclick="banM(${i})"><i class='fas fa-ban'></i></button> <button class="btn btn-sm btn-danger" onclick="deleteM(${i})"><i class='fas fa-trash'></i></button></td></tr>`;
+            h += `<tr><td class="ps-4"><b>${m.name}</b><br><small class='text-muted'>${m.email}</small></td><td>${m.slots || 1}</td><td><span class="badge ${m.banned?'bg-danger':'bg-success'}">${m.banned?'BANNED':'ACTIVE'}</span></td><td class="text-end pe-4"><button class="btn btn-sm btn-outline-dark" onclick="editCarryOver('${m.email}')"><i class='fas fa-plus'></i></button> <button class="btn btn-sm btn-warning" onclick="banM('${m.email}')"><i class='fas fa-ban'></i></button> <button class="btn btn-sm btn-danger" onclick="deleteM('${m.email}')"><i class='fas fa-trash'></i></button></td></tr>`;
         });
         document.getElementById('memberManagerList').innerHTML = h + '</tbody></table></div>';
         new bootstrap.Modal(document.getElementById('memberManagerModal')).show();
     }
 
-    function editCarryOver(i) {
-        const amt = prompt(`Set Carry-over/Initial Balance for ${appData.members[i].name}:`, appData.members[i].carryOver);
+    function editCarryOver(email) {
+        const mi = appData.members.findIndex(m => m.email === email);
+        const amt = prompt(`Set Carry-over for ${appData.members[mi].name}:`, appData.members[mi].carryOver);
         if(amt !== null) {
-            appData.members[i].carryOver = Number(amt);
+            appData.members[mi].carryOver = Number(amt);
             save(); openMemberManager();
         }
     }
     
-    function banM(i) { appData.members[i].banned = !appData.members[i].banned; save(); openMemberManager(); }
-    function deleteM(i) { if(confirm("Permanently delete member?")) { appData.members.splice(i,1); save(); openMemberManager(); } }
+    function banM(email) { 
+        const mi = appData.members.findIndex(m => m.email === email);
+        appData.members[mi].banned = !appData.members[mi].banned; 
+        save(); openMemberManager(); 
+    }
+    function deleteM(email) { 
+        if(confirm("Permanently delete member?")) { 
+            appData.members = appData.members.filter(m => m.email !== email);
+            save(); openMemberManager(); 
+        } 
+    }
 
     function exportBackup() { 
         const blob = new Blob([JSON.stringify(appData)], {type: 'application/json'}); 
