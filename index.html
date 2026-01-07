@@ -3,179 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sinking Fund Cloud - Official v10.0</title>
+    <title>PH Sinking Fund Cloud v10.3</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root { --primary-blue: #003366; --danger-red: #dc3545; --success-green: #198754; }
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
         .navbar { background-color: var(--primary-blue); border-bottom: 3px solid #ffc107; }
-        .card { border-radius: 15px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         #loginPage, #adminDashboard, #memberDashboard, #loadingScreen { display: none; }
+        .card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
         .unpaid-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; background-color: #ffe5e5; color: var(--danger-red); border: 1px solid var(--danger-red); font-weight: bold; }
-        .history-item { border-left: 5px solid var(--success-green); margin-bottom: 12px; padding: 12px; background: white; border-radius: 8px; transition: 0.3s; }
+        .history-item { border-left: 5px solid var(--success-green); margin-bottom: 12px; padding: 12px; background: white; border-radius: 8px; }
         .history-item.unpaid { border-left-color: #dee2e6; color: #adb5bd; }
         .transparency-card { background: linear-gradient(135deg, #003366 0%, #00509d 100%); color: white; }
-        .table-responsive { max-height: 500px; overflow-y: auto; }
-        .btn-google { background: white; color: #444; border: 1px solid #ddd; font-weight: 600; }
     </style>
 </head>
 <body>
 
 <div id="loadingScreen" class="position-fixed w-100 h-100 bg-white d-flex flex-column align-items-center justify-content-center" style="z-index: 9999; top:0; left:0;">
-    <div class="spinner-grow text-primary" role="status"></div>
-    <h5 class="mt-3 fw-bold text-primary">SINKING FUND CLOUD</h5>
-    <p class="text-muted small">Syncing live data from Firestore...</p>
+    <div class="spinner-border text-primary mb-3"></div>
+    <h5 class="fw-bold text-primary">SINKING FUND SYSTEM</h5>
+    <p id="loadStatus" class="text-muted small">Connecting to Firebase...</p>
+    <button id="retryBtn" class="btn btn-sm btn-outline-danger mt-3 d-none" onclick="location.reload()">Retry Connection</button>
 </div>
 
-<div id="loginPage" class="container py-5">
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-5">
-            <div class="card p-5 text-center shadow-lg">
-                <h1 class="fw-bold text-primary mb-2">SF Login</h1>
-                <p class="text-muted mb-4">Secure Google Authentication for PH Sinking Funds</p>
-                <button class="btn btn-google w-100 py-3 d-flex align-items-center justify-content-center shadow-sm" onclick="signIn()">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="22" class="me-3">
-                    Sign in with Google
-                </button>
-                <div class="mt-4 small text-muted text-uppercase">Exclusive for Authorized Members</div>
-            </div>
-        </div>
+<div id="loginPage" class="container py-5 mt-5 text-center">
+    <div class="card p-5 shadow-lg border-0 d-inline-block" style="max-width: 400px;">
+        <h1 class="fw-bold text-primary">Welcome</h1>
+        <p class="text-muted mb-4">Secure Sinking Fund Cloud</p>
+        <button class="btn btn-outline-dark w-100 py-3 fw-bold" onclick="signIn()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="22" class="me-2">
+            Sign in with Google
+        </button>
     </div>
 </div>
 
-<nav id="topNav" class="navbar navbar-dark mb-4 d-none sticky-top">
+<nav id="topNav" class="navbar navbar-dark mb-4 d-none">
     <div class="container d-flex justify-content-between">
-        <span class="navbar-brand fw-bold">🇵🇭 SF PRO <span class="badge bg-warning text-dark ms-2" style="font-size:0.6rem">v10.0 CLOUD</span></span>
-        <div class="d-flex align-items-center">
-            <span id="navUserName" class="text-white me-3 d-none d-md-inline small"></span>
-            <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="signOut()">Logout</button>
-        </div>
+        <span class="navbar-brand fw-bold">🇵🇭 SF CLOUD v10.3</span>
+        <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="signOut()">Logout</button>
     </div>
 </nav>
 
 <div id="adminDashboard" class="container">
     <div class="row mb-4 g-3 text-white">
-        <div class="col-md-4"><div class="card p-3 bg-primary border-0"><h6>Total Collected (Fund)</h6><h2 id="admTotalColl">₱0</h2></div></div>
-        <div class="col-md-4"><div class="card p-3 bg-danger border-0"><h6>Active Loans Out</h6><h2 id="admTotalLoans">₱0</h2></div></div>
-        <div class="col-md-4"><div class="card p-3 bg-success border-0"><h6>Cash Remaining</h6><h2 id="admCashHand">₱0</h2></div></div>
+        <div class="col-md-4"><div class="card p-3 bg-primary"><h6>Total Collected</h6><h2 id="admTotalColl">₱0</h2></div></div>
+        <div class="col-md-4"><div class="card p-3 bg-danger"><h6>Active Loans</h6><h2 id="admTotalLoans">₱0</h2></div></div>
+        <div class="col-md-4"><div class="card p-3 bg-success"><h6>Cash Hand</h6><h2 id="admCashHand">₱0</h2></div></div>
+    </div>
+
+    <div class="card p-4 mb-4">
+        <div class="d-flex justify-content-between mb-3 align-items-center">
+            <h5 class="fw-bold m-0 text-primary">Master Ledger</h5>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-primary" onclick="addMember()">+ Member</button>
+                <select id="newMonthSelect" class="form-select form-select-sm" style="width: 100px;">
+                    <option value="Jan">Jan</option><option value="Feb">Feb</option><option value="Mar">Mar</option>
+                    <option value="Apr">Apr</option><option value="May">May</option><option value="Jun">Jun</option>
+                    <option value="Jul">Jul</option><option value="Aug">Aug</option><option value="Sep">Sep</option>
+                    <option value="Oct">Oct</option><option value="Nov">Nov</option><option value="Dec">Dec</option>
+                </select>
+                <button class="btn btn-sm btn-success" onclick="addNewMonth()">+ Month</button>
+            </div>
+        </div>
+        <div class="table-responsive"><table class="table table-bordered"><thead id="tableHead" class="table-light"></thead><tbody id="tableBody"></tbody></table></div>
     </div>
 
     <div class="row">
-        <div class="col-lg-12 mb-4">
-            <div class="card p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                    <h5 class="fw-bold m-0 text-primary">Master Collection Ledger</h5>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-primary" onclick="addMember()">+ Add Member</button>
-                        <select id="newMonthSelect" class="form-select form-select-sm" style="width: 100px;">
-                            <option value="Jan">Jan</option><option value="Feb">Feb</option><option value="Mar">Mar</option>
-                            <option value="Apr">Apr</option><option value="May">May</option><option value="Jun">Jun</option>
-                            <option value="Jul">Jul</option><option value="Aug">Aug</option><option value="Sep">Sep</option>
-                            <option value="Oct">Oct</option><option value="Nov">Nov</option><option value="Dec">Dec</option>
-                        </select>
-                        <button class="btn btn-sm btn-success" onclick="addNewMonth()">+ Month</button>
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover table-bordered align-middle">
-                        <thead id="tableHead" class="table-light"></thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4 mb-4">
-            <div class="card p-4 border-top border-danger border-5 h-100 shadow-sm">
-                <h5 class="fw-bold text-danger mb-3">Release New Loan</h5>
+        <div class="col-md-6 mb-4">
+            <div class="card p-4 border-top border-danger border-5 h-100">
+                <h5 class="fw-bold mb-3">Release Loan</h5>
                 <select id="loanType" class="form-select mb-2" onchange="toggleLoanInputs()">
-                    <option value="member">Existing Member</option>
-                    <option value="non">External (Non-Member)</option>
+                    <option value="member">To Member</option><option value="non">External</option>
                 </select>
                 <div id="memberInputs"><select id="loanMemberSelect" class="form-select mb-2"></select></div>
                 <div id="nonInputs" class="d-none">
-                    <input type="text" id="nonName" class="form-control mb-2" placeholder="Borrower's Name">
-                    <input type="text" id="nonContact" class="form-control mb-2" placeholder="Contact / Note">
+                    <input type="text" id="nonName" class="form-control mb-2" placeholder="Borrower Name">
                 </div>
-                <input type="number" id="loanAmtInput" class="form-control mb-3" placeholder="Principal Amount (₱)">
-                <button class="btn btn-danger w-100 fw-bold" onclick="releaseLoan()">APPROVE & RELEASE</button>
+                <input type="number" id="loanAmtInput" class="form-control mb-3" placeholder="Amount">
+                <button class="btn btn-danger w-100 fw-bold" onclick="releaseLoan()">APPROVE</button>
             </div>
         </div>
-
-        <div class="col-lg-4 mb-4">
-            <div class="card p-4 h-100 shadow-sm">
-                <h5 class="fw-bold text-primary mb-3">Active Loan List</h5>
-                <div id="loanLedgerList" style="max-height: 300px; overflow-y: auto;"></div>
-            </div>
+        <div class="col-md-6 mb-4">
+            <div class="card p-4 h-100"><h5>Active Loans</h5><div id="loanLedgerList"></div></div>
         </div>
-
-        <div class="col-lg-4 mb-4">
-            <div class="card p-4 border-top border-dark border-5 h-100 shadow-sm">
-                <h5 class="fw-bold mb-3">⚙️ Admin Settings</h5>
-                <label class="small fw-bold">Contribution Amount (Per Cutoff)</label>
-                <div class="input-group input-group-sm mb-2">
-                    <span class="input-group-text">₱</span>
-                    <input type="number" id="setConfigAmount" class="form-control">
-                </div>
-                <label class="small fw-bold">Interest Rate (%)</label>
-                <div class="input-group input-group-sm mb-3">
-                    <input type="number" id="setConfigInterest" class="form-control">
-                    <span class="input-group-text">%</span>
-                </div>
-                <button class="btn btn-dark btn-sm w-100 mb-2" onclick="updateSettings()">Apply Changes</button>
-                <button class="btn btn-outline-danger btn-sm w-100" onclick="resetSystem()">WIPE DATABASE</button>
-            </div>
+    </div>
+    
+    <div class="card p-4 mt-2">
+        <h5>Settings</h5>
+        <div class="row">
+            <div class="col-6"><label class="small">Contribution</label><input type="number" id="setConfigAmount" class="form-control"></div>
+            <div class="col-6"><label class="small">Interest %</label><input type="number" id="setConfigInterest" class="form-control"></div>
         </div>
+        <button class="btn btn-dark w-100 mt-3" onclick="updateSettings()">Save Global Settings</button>
     </div>
 </div>
 
 <div id="memberDashboard" class="container">
     <div class="row g-4">
         <div class="col-lg-4">
-            <div class="card p-4 transparency-card shadow-lg mb-4 text-center border-0">
-                <img id="userPhoto" class="rounded-circle mx-auto mb-3 border border-3 border-white shadow" width="85">
-                <h2 id="mDashName" class="fw-bold mb-1"></h2>
-                <p class="opacity-75 small">Member Account</p>
+            <div class="card p-4 transparency-card text-center">
+                <img id="userPhoto" class="rounded-circle mx-auto mb-3 border border-3 border-white shadow" width="80">
+                <h2 id="mDashName" class="fw-bold"></h2>
                 <hr class="bg-white">
-                <div class="row g-2">
-                    <div class="col-6">
-                        <small class="opacity-75 d-block">Your Savings</small>
-                        <h4 id="mDashContri" class="fw-bold">₱0</h4>
-                    </div>
-                    <div class="col-6">
-                        <small class="opacity-75 d-block">Current Loan</small>
-                        <h4 id="mDashLoan" class="text-warning fw-bold">₱0</h4>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card p-3 shadow-sm border-start border-primary border-5">
-                <h6 class="fw-bold text-primary">Community Transparency</h6>
-                <div class="d-flex justify-content-between small border-bottom py-2">
-                    <span>Group Net Profit:</span>
-                    <span id="mGroupProfit" class="text-success fw-bold">₱0</span>
-                </div>
-                <div class="d-flex justify-content-between small py-2">
-                    <span>Active Group Loans:</span>
-                    <span id="mGroupLoans" class="text-danger fw-bold">₱0</span>
+                <div class="row">
+                    <div class="col-6"><small>Savings</small><h4 id="mDashContri">₱0</h4></div>
+                    <div class="col-6"><small>Loan</small><h4 id="mDashLoan" class="text-warning">₱0</h4></div>
                 </div>
             </div>
         </div>
-
         <div class="col-lg-8">
-            <div class="card p-4 shadow-sm border-0 h-100">
-                <h5 class="fw-bold mb-4 text-primary">Payment History & Tracking</h5>
-                <div id="paymentTimeline"></div>
-            </div>
+            <div class="card p-4"><h5>History</h5><div id="paymentTimeline"></div></div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- FIREBASE INITIALIZATION ---
     const firebaseConfig = {
         apiKey: "AIzaSyC5nSdDA5IrA0Gpt_nUcpT2NI0kdGGU3wI",
         authDomain: "sinking-fund-51fcd.firebaseapp.com",
@@ -185,250 +130,119 @@
         appId: "1:943953104162:web:872f8dbc6f3fac7c63a97b"
     };
 
+    const ADMIN_EMAIL = "ev.lorens.ebrado@gmail.com";
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // --- SYSTEM CONSTANTS ---
-    const ADMIN_EMAIL = "ev.lorens.ebrado@gmail.com";
-    let appData = { 
-        settings: { contri: 100, interest: 5 }, 
-        members: [], 
-        cycles: ["Jan"], 
-        loans: [], 
-        profit: 0 
-    };
+    let appData = { settings: { contri: 100, interest: 5 }, members: [], cycles: ["Jan"], loans: [], profit: 0 };
 
-    const now = new Date();
-    const curDay = now.getDate();
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const curMonthLabel = months[now.getMonth()];
-
-    // --- AUTHENTICATION FLOW ---
-    function signIn() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider);
-    }
-
-    function signOut() {
-        auth.signOut().then(() => location.reload());
-    }
+    // Connection Timeout logic
+    const connectionTimer = setTimeout(() => {
+        document.getElementById('loadStatus').innerHTML = "<span class='text-danger'>Connection Timeout! Check Firestore Rules or Internet.</span>";
+        document.getElementById('retryBtn').classList.remove('d-none');
+    }, 8000);
 
     auth.onAuthStateChanged(user => {
         if (user) {
-            document.getElementById('loadingScreen').style.display = 'flex';
-            document.getElementById('navUserName').innerText = user.displayName;
-            
+            document.getElementById('loadStatus').innerText = "Logged in. Fetching data...";
             db.collection("system").doc("main").onSnapshot(doc => {
-                if (doc.exists) {
-                    appData = doc.data();
-                } else {
-                    db.collection("system").doc("main").set(appData);
-                }
+                clearTimeout(connectionTimer);
+                if (doc.exists) appData = doc.data();
+                else db.collection("system").doc("main").set(appData);
                 
                 document.getElementById('loadingScreen').style.display = 'none';
-                document.getElementById('loginPage').style.display = 'none';
                 document.getElementById('topNav').classList.remove('d-none');
 
                 if (user.email === ADMIN_EMAIL) {
-                    document.getElementById('adminDashboard').style.display = 'block';
-                    document.getElementById('memberDashboard').style.display = 'none';
+                    showPage('adminDashboard');
                     renderAdmin();
                 } else {
-                    document.getElementById('adminDashboard').style.display = 'none';
-                    document.getElementById('memberDashboard').style.display = 'block';
+                    showPage('memberDashboard');
                     renderMember(user);
                 }
+            }, err => {
+                document.getElementById('loadStatus').innerText = "Permission Denied! Check Firestore Rules.";
             });
         } else {
-            document.getElementById('loginPage').style.display = 'block';
+            clearTimeout(connectionTimer);
             document.getElementById('loadingScreen').style.display = 'none';
-            document.getElementById('adminDashboard').style.display = 'none';
-            document.getElementById('memberDashboard').style.display = 'none';
-            document.getElementById('topNav').classList.add('d-none');
+            showPage('loginPage');
         }
     });
 
-    // --- ADMIN CORE FUNCTIONS ---
+    function showPage(id) {
+        ['loginPage', 'adminDashboard', 'memberDashboard'].forEach(p => document.getElementById(p).style.display = 'none');
+        document.getElementById(id).style.display = 'block';
+    }
+
+    function signIn() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+    function signOut() { auth.signOut().then(() => location.reload()); }
+
     function renderAdmin() {
         document.getElementById('setConfigAmount').value = appData.settings.contri;
         document.getElementById('setConfigInterest').value = appData.settings.interest;
-
-        // Table Header
         const head = document.getElementById('tableHead');
-        let h1 = '<tr><th>Member Name</th>';
-        let h2 = '<tr><td></td>';
-        appData.cycles.forEach(c => {
-            h1 += `<th colspan="2" class="text-center bg-light">${c}</th>`;
-            h2 += `<th class="text-center small py-1">15th</th><th class="text-center small py-1">30th</th>`;
-        });
-        head.innerHTML = h1 + '<th class="bg-primary text-white">Total</th></tr>' + h2 + '<td></td></tr>';
+        let h1 = '<tr><th>Member</th>'; let h2 = '<tr><td></td>';
+        appData.cycles.forEach(c => { h1 += `<th colspan="2" class="text-center">${c}</th>`; h2 += `<th class="text-center small py-1">15th</th><th class="text-center small py-1">30th</th>`; });
+        head.innerHTML = h1 + '<th>Total</th></tr>' + h2 + '<td></td></tr>';
 
-        // Table Body
-        const body = document.getElementById('tableBody');
-        body.innerHTML = '';
+        const body = document.getElementById('tableBody'); body.innerHTML = '';
         let totalColl = 0;
         const lSelect = document.getElementById('loanMemberSelect');
-        lSelect.innerHTML = '<option value="">Choose Member...</option>';
+        lSelect.innerHTML = '<option value="">Borrower...</option>';
 
         appData.members.forEach((m, mIdx) => {
             let mSum = 0;
-            let badge = '';
-            
-            // Smart Date Alert
-            const cyIdx = appData.cycles.indexOf(curMonthLabel);
-            if(cyIdx !== -1) {
-                const paid15 = m.payments[cyIdx * 2];
-                if(curDay > 15 && !paid15) badge = '<br><span class="unpaid-badge">UNPAID 15th</span>';
-            }
-
-            let cells = `<td><b>${m.name}</b>${badge}</td>`;
-            m.payments.forEach((p, pIdx) => {
-                if(p) mSum += appData.settings.contri;
-                cells += `<td class="text-center"><input type="checkbox" class="form-check-input" ${p?'checked':''} onclick="togglePay(${mIdx},${pIdx})"></td>`;
-            });
+            let cells = `<td><b>${m.name}</b></td>`;
+            m.payments.forEach((p, pIdx) => { if(p) mSum += appData.settings.contri; cells += `<td class="text-center"><input type="checkbox" class="form-check-input" ${p?'checked':''} onclick="togglePay(${mIdx},${pIdx})"></td>`; });
             totalColl += mSum;
             body.innerHTML += `<tr>${cells}<td class="fw-bold">₱${mSum.toLocaleString()}</td></tr>`;
             lSelect.innerHTML += `<option value="${m.name}">${m.name}</option>`;
         });
 
-        // Loans Section
-        const list = document.getElementById('loanLedgerList');
-        list.innerHTML = '';
-        let loanTotal = 0;
+        const list = document.getElementById('loanLedgerList'); list.innerHTML = '';
+        let loanVal = 0;
         appData.loans.forEach((l, idx) => {
-            loanTotal += l.principal;
-            const totalDue = l.principal * (1 + (appData.settings.interest/100));
-            list.innerHTML += `
-                <div class="p-2 border-bottom mb-2 bg-light rounded d-flex justify-content-between align-items-center">
-                    <div>
-                        <small class="d-block fw-bold">${l.borrower}</small>
-                        <small class="text-danger fw-bold">₱${totalDue.toLocaleString()}</small>
-                    </div>
-                    <button class="btn btn-sm btn-success py-0 px-2" onclick="collectLoan(${idx})">Collect</button>
-                </div>`;
+            loanVal += l.principal;
+            const due = l.principal * (1 + (appData.settings.interest/100));
+            list.innerHTML += `<div class="p-2 border-bottom d-flex justify-content-between align-items-center"><span>${l.borrower} (₱${due.toLocaleString()})</span><button class="btn btn-sm btn-success py-0" onclick="collectLoan(${idx})">Collect</button></div>`;
         });
 
         document.getElementById('admTotalColl').innerText = `₱${(totalColl + appData.profit).toLocaleString()}`;
-        document.getElementById('admTotalLoans').innerText = `₱${loanTotal.toLocaleString()}`;
-        document.getElementById('admCashHand').innerText = `₱${(totalColl + appData.profit - loanTotal).toLocaleString()}`;
+        document.getElementById('admTotalLoans').innerText = `₱${loanVal.toLocaleString()}`;
+        document.getElementById('admCashHand').innerText = `₱${(totalColl + appData.profit - loanVal).toLocaleString()}`;
     }
 
-    function togglePay(mIdx, pIdx) {
-        appData.members[mIdx].payments[pIdx] = !appData.members[mIdx].payments[pIdx];
-        saveToCloud();
-    }
-
-    function toggleLoanInputs() {
-        const type = document.getElementById('loanType').value;
-        document.getElementById('memberInputs').classList.toggle('d-none', type !== 'member');
-        document.getElementById('nonInputs').classList.toggle('d-none', type !== 'non');
-    }
-
-    function releaseLoan() {
-        const type = document.getElementById('loanType').value;
-        const amt = parseFloat(document.getElementById('loanAmtInput').value);
-        if(isNaN(amt) || amt <= 0) return alert("Enter valid amount");
-        
-        let borrower = "";
-        if(type === 'member') {
-            borrower = document.getElementById('loanMemberSelect').value;
-        } else {
-            const n = document.getElementById('nonName').value;
-            const c = document.getElementById('nonContact').value;
-            borrower = n + " (" + c + ")";
-        }
-        
-        if(!borrower) return alert("Specify borrower");
-        appData.loans.push({ borrower, principal: amt });
-        document.getElementById('loanAmtInput').value = '';
-        saveToCloud();
-    }
-
-    function collectLoan(idx) {
-        appData.profit += (appData.loans[idx].principal * (appData.settings.interest/100));
-        appData.loans.splice(idx, 1);
-        saveToCloud();
-    }
-
-    function addMember() {
-        const n = prompt("Enter Member's EXACT Google Display Name:");
-        if(n) {
-            appData.members.push({ name: n, payments: new Array(appData.cycles.length * 2).fill(false) });
-            saveToCloud();
-        }
-    }
-
-    function addNewMonth() {
-        const m = document.getElementById('newMonthSelect').value;
-        if(appData.cycles.includes(m)) return alert("Month already exists!");
-        appData.cycles.push(m);
-        appData.members.forEach(mem => mem.payments.push(false, false));
-        saveToCloud();
-    }
-
-    function updateSettings() {
-        appData.settings.contri = parseFloat(document.getElementById('setConfigAmount').value);
-        appData.settings.interest = parseFloat(document.getElementById('setConfigInterest').value);
-        saveToCloud();
-        alert("Settings Updated Globally");
-    }
-
-    function resetSystem() {
-        if(confirm("DANGER: This will permanently wipe all cloud data. Proceed?")) {
-            db.collection("system").doc("main").delete().then(() => location.reload());
-        }
-    }
-
-    // --- MEMBER DASHBOARD FUNCTIONS ---
     function renderMember(user) {
         const member = appData.members.find(m => m.name === user.displayName);
-        if(!member) {
-            document.getElementById('mDashName').innerText = "Guest Access";
-            document.getElementById('paymentTimeline').innerHTML = `
-                <div class="alert alert-warning">
-                    Account Found, but you are not yet added to the Master Ledger by the Admin. 
-                    Please ask ev.lorens.ebrado@gmail.com to add "${user.displayName}".
-                </div>`;
-            return;
-        }
-
         document.getElementById('userPhoto').src = user.photoURL;
         document.getElementById('mDashName').innerText = user.displayName;
-
-        let mySavings = 0;
-        const timeline = document.getElementById('paymentTimeline');
-        timeline.innerHTML = '';
-
+        if(!member) return document.getElementById('paymentTimeline').innerHTML = `<div class="alert alert-info">Ask Admin to add you as "${user.displayName}"</div>`;
+        let saved = 0; const timeline = document.getElementById('paymentTimeline'); timeline.innerHTML = '';
         member.payments.forEach((p, idx) => {
             const cy = appData.cycles[Math.floor(idx/2)];
             const cut = idx % 2 === 0 ? "15th" : "30th";
-            if(p) mySavings += appData.settings.contri;
-
-            timeline.innerHTML += `
-                <div class="history-item ${p?'':'unpaid'} d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="mb-0 fw-bold text-uppercase" style="font-size:0.8rem">${cy} ${cut} Contribution</h6>
-                        <small>${p ? '✓ Transaction Verified by Admin' : '⏳ Pending Payment Submission'}</small>
-                    </div>
-                    <div class="fw-bold">${p ? '₱'+appData.settings.contri : 'UNPAID'}</div>
-                </div>`;
+            if(p) saved += appData.settings.contri;
+            timeline.innerHTML += `<div class="history-item ${p?'':'unpaid'} d-flex justify-content-between"><span>${cy} ${cut}</span><b>${p ? '₱'+appData.settings.contri : 'UNPAID'}</b></div>`;
         });
-
-        const myLoan = appData.loans.find(l => l.borrower === user.displayName);
-        document.getElementById('mDashContri').innerText = `₱${mySavings.toLocaleString()}`;
-        document.getElementById('mDashLoan').innerText = myLoan ? `₱${(myLoan.principal * (1+(appData.settings.interest/100))).toLocaleString()}` : "₱0";
-        document.getElementById('mGroupProfit').innerText = `₱${appData.profit.toLocaleString()}`;
-        
-        let totalActiveLoans = 0;
-        appData.loans.forEach(l => totalActiveLoans += l.principal);
-        document.getElementById('mGroupLoans').innerText = `₱${totalActiveLoans.toLocaleString()}`;
+        document.getElementById('mDashContri').innerText = `₱${saved.toLocaleString()}`;
+        const loan = appData.loans.find(l => l.borrower === user.displayName);
+        document.getElementById('mDashLoan').innerText = loan ? `₱${(loan.principal * (1+appData.settings.interest/100)).toLocaleString()}` : "₱0";
     }
 
-    function saveToCloud() {
-        db.collection("system").doc("main").set(appData);
+    function togglePay(mIdx, pIdx) { appData.members[mIdx].payments[pIdx] = !appData.members[mIdx].payments[pIdx]; save(); }
+    function collectLoan(idx) { appData.profit += (appData.loans[idx].principal * (appData.settings.interest/100)); appData.loans.splice(idx, 1); save(); }
+    function releaseLoan() {
+        const amt = parseFloat(document.getElementById('loanAmtInput').value);
+        let b = document.getElementById('loanType').value === 'member' ? document.getElementById('loanMemberSelect').value : document.getElementById('nonName').value;
+        if(b && amt) { appData.loans.push({borrower: b, principal: amt}); save(); document.getElementById('loanAmtInput').value = ''; }
     }
-
+    function addMember() { const n = prompt("Name:"); if(n) { appData.members.push({name: n, payments: new Array(appData.cycles.length*2).fill(false)}); save(); } }
+    function addNewMonth() { const m = document.getElementById('newMonthSelect').value; if(m && !appData.cycles.includes(m)) { appData.cycles.push(m); appData.members.forEach(m => m.payments.push(false, false)); save(); } }
+    function updateSettings() { appData.settings.contri = parseFloat(document.getElementById('setConfigAmount').value); appData.settings.interest = parseFloat(document.getElementById('setConfigInterest').value); save(); alert("Saved"); }
+    function toggleLoanInputs() { document.getElementById('memberInputs').classList.toggle('d-none', document.getElementById('loanType').value !== 'member'); document.getElementById('nonInputs').classList.toggle('d-none', document.getElementById('loanType').value !== 'non'); }
+    function save() { db.collection("system").doc("main").set(appData); }
 </script>
 </body>
 </html>
