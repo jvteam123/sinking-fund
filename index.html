@@ -3,160 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SF PRO v10.48 | Premium Banking</title>
+    <title>SF PRO v10.49 | Complete Platinum</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root { --primary: #0056b3; --bg: #f0f2f5; --border: #e0e0e0; --success: #198754; --danger: #dc3545; --indigo: #6610f2; }
-        body { background-color: var(--bg); color: #212529; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-        .navbar { background: white; border-bottom: 3px solid var(--primary); box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .card { border: none; border-radius: 16px; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.2s; }
-        .card-header { background: transparent; border-bottom: 1px solid #f0f0f0; font-weight: 700; color: var(--primary); padding: 1.25rem; }
+        :root { --primary: #0056b3; --bg: #f4f7f6; --success: #198754; --danger: #dc3545; --indigo: #6610f2; }
+        body { background-color: var(--bg); color: #212529; font-family: 'Inter', sans-serif; }
+        .navbar { background: white; border-bottom: 3px solid var(--primary); }
+        .card { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
         
-        /* MEMBER PREMIUM DASHBOARD */
-        .member-hero { background: linear-gradient(135deg, #0056b3 0%, #003d82 100%); color: white; border-radius: 20px; padding: 2rem; margin-bottom: 2rem; position: relative; overflow: hidden; }
-        .member-hero::after { content: ""; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; }
-        .fund-stat-card { border-left: 5px solid var(--indigo); }
-        .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #6c757d; font-weight: 700; }
-        .stat-main { font-size: 1.8rem; font-weight: 800; margin: 5px 0; }
-        
-        /* TABLE & LISTS */
-        .table thead th { background: #f8f9fa; color: #495057; font-size: 0.7rem; border: none; padding: 15px; }
+        /* ADMIN SPECIFIC */
+        .ledger-wrapper { overflow: auto; max-height: 450px; border-radius: 10px; border: 1px solid #eee; }
+        .table thead th { background: #f8f9fa; position: sticky; top: 0; color: var(--primary); font-size: 0.75rem; }
         .month-col-hidden { display: none; }
-        .timeline-item { border-left: 2px solid var(--primary); padding-left: 20px; position: relative; padding-bottom: 15px; }
-        .timeline-item::before { content: ""; position: absolute; left: -9px; top: 0; width: 16px; height: 16px; background: white; border: 3px solid var(--primary); border-radius: 50%; }
-        
-        #loginPage { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: white; }
-        .btn-premium { background: var(--primary); color: white; border: none; padding: 10px 24px; border-radius: 12px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,86,179,0.3); }
-        .btn-premium:hover { background: #004494; color: white; transform: translateY(-1px); }
+        .log-entry { font-size: 0.75rem; padding: 6px; border-bottom: 1px solid #f0f0f0; }
+
+        /* MEMBER PREMIUM UI */
+        .member-hero { background: linear-gradient(135deg, #0056b3 0%, #002d5d 100%); color: white; border-radius: 20px; padding: 2.5rem; position: relative; }
+        .stat-label { font-size: 0.7rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
+        .stat-main { font-size: 2rem; font-weight: 800; }
+        .timeline-item { border-left: 2px solid var(--primary); padding-left: 15px; position: relative; padding-bottom: 15px; margin-left: 10px; }
+        .timeline-item::before { content: ""; position: absolute; left: -7px; top: 0; width: 12px; height: 12px; background: var(--primary); border-radius: 50%; }
+
+        #loginPage { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
 <nav id="topNav" class="navbar navbar-light sticky-top" style="display:none">
-    <div class="container-fluid px-4">
-        <span class="navbar-brand fw-bold text-primary"><i class="fas fa-shield-halved me-2"></i>SF PLATINUM ELITE</span>
-        <button class="btn btn-sm btn-outline-danger px-3 rounded-pill" onclick="confirmAction('Logout of system?', signOut)">LOGOUT</button>
+    <div class="container-fluid px-4 d-flex justify-content-between">
+        <span class="navbar-brand fw-bold text-primary"><i class="fas fa-gem me-2"></i>SF PLATINUM</span>
+        <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="confirmAction('Logout?', signOut)">LOGOUT</button>
     </div>
 </nav>
 
 <div id="loginPage">
-    <div class="text-center p-5 border rounded-4 shadow bg-white" style="width: 400px;">
-        <i class="fas fa-university fa-3x text-primary mb-4"></i>
-        <h2 class="fw-bold mb-1">Welcome</h2>
-        <p class="text-muted mb-4">Secure Financial Portal v10.48</p>
-        <button class="btn btn-premium w-100 py-3" onclick="signIn()"><i class="fab fa-google me-2"></i>Sign in with Google</button>
+    <div class="card p-5 text-center shadow-lg" style="width: 400px;">
+        <h2 class="fw-bold text-primary">Secure Access</h2>
+        <p class="text-muted small">Financial Management v10.49</p>
+        <button class="btn btn-primary w-100 py-2 mt-3" onclick="signIn()">Google Login</button>
     </div>
 </div>
 
 <div id="adminDashboard" class="container-fluid py-4" style="display:none">
     <div class="row g-3 mb-4">
-        <div class="col-md-3"><div class="card p-3 border-start border-4 border-success"><h6>Cash on Hand</h6><div class="stat-main text-success" id="admCash">₱0</div></div></div>
-        <div class="col-md-3"><div class="card p-3 border-start border-4 border-danger"><h6>Active Loans</h6><div class="stat-main text-danger" id="admLoans">₱0</div></div></div>
-        <div class="col-md-3"><div class="card p-3 border-start border-4 border-primary"><h6>Interest Profit</h6><div class="stat-main text-primary" id="admProfit">₱0</div></div></div>
-        <div class="col-md-3"><div class="card p-3 border-start border-4 border-dark"><h6>Net Fund Worth</h6><div class="stat-main" id="admPool">₱0</div></div></div>
+        <div class="col-md-3"><div class="card p-3 border-start border-4 border-success"><h6>Cash</h6><div class="stat-main text-success" id="admCash">₱0</div></div></div>
+        <div class="col-md-3"><div class="card p-3 border-start border-4 border-danger"><h6>Loans</h6><div class="stat-main text-danger" id="admLoans">₱0</div></div></div>
+        <div class="col-md-3"><div class="card p-3 border-start border-4 border-primary"><h6>Profit</h6><div class="stat-main text-primary" id="admProfit">₱0</div></div></div>
+        <div class="col-md-3"><div class="card p-3 border-start border-4 border-dark"><h6>Net</h6><div class="stat-main" id="admPool">₱0</div></div></div>
     </div>
+
     <div class="row g-4">
         <div class="col-lg-9">
             <div class="card p-4">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-bold m-0"><i class="fas fa-table me-2"></i>Master Ledger</h5>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold"><i class="fas fa-list-check me-2"></i>Master Ledger</h5>
                     <div class="d-flex gap-2">
-                        <div class="form-check form-switch mt-1 me-2"><input class="form-check-input" type="checkbox" id="toggleShowAll" onchange="renderAdmin()"><label class="form-check-label small fw-bold">Full History</label></div>
-                        <button class="btn btn-sm btn-outline-dark" onclick="confirmAction('Download backup?', exportBackup)">Export</button>
-                        <button class="btn btn-sm btn-primary" onclick="confirmAction('Start next month?', suggestNextMonth)">+ Month</button>
+                        <div class="form-check form-switch mt-1 me-2">
+                            <input class="form-check-input" type="checkbox" id="toggleShowAll" onchange="renderAdmin()">
+                            <label class="form-check-label small fw-bold">History</label>
+                        </div>
+                        <button class="btn btn-sm btn-outline-dark" onclick="confirmAction('Backup?', exportBackup)">Export</button>
+                        <button class="btn btn-sm btn-primary" onclick="confirmAction('Next Month?', suggestNextMonth)">+ Month</button>
                     </div>
                 </div>
-                <div class="table-responsive"><table class="table text-center align-middle"><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table></div>
+                <div class="ledger-wrapper"><table class="table text-center align-middle"><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table></div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-6"><div class="card p-3"><h6>Audit Trail</h6><div id="auditLogs" class="overflow-auto" style="max-height: 200px;"></div></div></div>
+                <div class="col-md-6"><div class="card p-3"><h6>Borrow Requests</h6><div id="adminRequestList"></div></div></div>
             </div>
         </div>
+
         <div class="col-lg-3">
-            <div class="card p-3 mb-3">
-                <h6 class="fw-bold border-bottom pb-2">Loan Actions</h6>
+            <div class="card p-3">
+                <h6 class="fw-bold text-danger border-bottom pb-2">Loan Release</h6>
                 <select id="loanTypeSelect" class="form-select form-select-sm mb-2" onchange="toggleLoanType()"><option value="member">Member</option><option value="non">Guest</option></select>
                 <div id="memberLoanBox"><select id="loanMemberSelect" class="form-select form-select-sm mb-2"></select></div>
                 <div id="nonMemberLoanBox" class="d-none"><input type="text" id="nonMemberName" class="form-control form-control-sm mb-2" placeholder="Guest Name"></div>
-                <input type="number" id="loanAmtInput" class="form-control form-control-sm mb-2" placeholder="Amount (₱)">
-                <button class="btn btn-sm btn-danger w-100" onclick="confirmAction('Release loan?', releaseLoan)">DISBURSE</button>
-                <div id="loanLedgerList" class="mt-3 overflow-auto" style="max-height:200px"></div>
+                <input type="number" id="loanAmtInput" class="form-control form-control-sm mb-2" placeholder="Amount">
+                <button class="btn btn-sm btn-danger w-100 mb-3" onclick="confirmAction('Release Funds?', releaseLoan)">DISBURSE</button>
+                <div id="loanLedgerList" class="overflow-auto small" style="max-height: 200px;"></div>
             </div>
-            <div class="card p-3"><h6 class="fw-bold border-bottom pb-2">System</h6><button class="btn btn-sm btn-outline-dark w-100 mb-2" onclick="confirmAction('Add member?', addMember)">+ Member</button><button class="btn btn-sm btn-outline-warning w-100" onclick="confirmAction('Close Fiscal Year?', closeFiscalYear)">Close Year</button></div>
+            <div class="card p-3">
+                <h6 class="fw-bold border-bottom pb-2">Config</h6>
+                <div class="row g-1 mb-2">
+                    <div class="col-6"><input type="number" id="setConfigAmount" class="form-control form-control-sm" placeholder="Contri"></div>
+                    <div class="col-6"><input type="number" id="setConfigInterest" class="form-control form-control-sm" placeholder="Int %"></div>
+                </div>
+                <button class="btn btn-sm btn-outline-primary w-100 mb-2" onclick="confirmAction('Update Settings?', updateSettings)">Update Config</button>
+                <button class="btn btn-sm btn-outline-dark w-100 mb-2" onclick="confirmAction('Add Member?', addMember)">+ Add Member</button>
+                <button class="btn btn-sm btn-outline-warning w-100" onclick="confirmAction('Close Fiscal Year?', closeFiscalYear)">Close Year</button>
+                <button class="btn btn-link text-danger w-100 small mt-2" onclick="secureSystemWipe()">Wipe System</button>
+            </div>
         </div>
     </div>
 </div>
 
 <div id="memberDashboard" class="container py-4" style="display:none">
-    <div class="member-hero shadow-lg">
+    <div class="member-hero shadow mb-4">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h1 class="fw-bold mb-0" id="mDashName">...</h1>
-                <p class="opacity-75 mb-4">Member ID: Active Contributor</p>
-                <div class="d-flex gap-4">
-                    <div><span class="stat-label text-white opacity-75">My Net Savings</span><div class="stat-main" id="mDashContri">₱0</div></div>
-                    <div><span class="stat-label text-white opacity-75">My Dividends</span><div class="stat-main text-warning" id="mDashShare">₱0</div></div>
+                <h1 class="fw-bold" id="mDashName">...</h1>
+                <div class="d-flex gap-5 mt-4">
+                    <div><span class="stat-label">My Savings</span><div class="stat-main" id="mDashContri">₱0</div></div>
+                    <div><span class="stat-label">My Dividends</span><div class="stat-main text-warning" id="mDashShare">₱0</div></div>
                 </div>
             </div>
-            <div class="col-md-4 text-md-end mt-4 mt-md-0">
-                <button class="btn btn-light btn-lg px-5 rounded-pill fw-bold text-primary" onclick="confirmAction('Send borrow request?', requestLoan)">REQUEST LOAN</button>
-            </div>
+            <div class="col-md-4 text-md-end mt-4"><button class="btn btn-light btn-lg rounded-pill fw-bold text-primary" onclick="confirmAction('Send borrow request?', requestLoan)">REQUEST LOAN</button></div>
         </div>
     </div>
-
     <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="card p-4 fund-stat-card border-indigo">
-                <span class="stat-label">Total Fund Pool</span>
-                <div class="stat-main" id="mTotalPool">₱0</div>
-                <p class="small text-muted mb-0">Combined savings of all members</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card p-4 fund-stat-card border-success" style="border-left-color: var(--success)">
-                <span class="stat-label">Group Interest Profit</span>
-                <div class="stat-main text-success" id="mTotalProfit">₱0</div>
-                <p class="small text-muted mb-0">Total earnings from loans collected</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card p-4 fund-stat-card border-danger" style="border-left-color: var(--danger)">
-                <span class="stat-label">My Current Debt</span>
-                <div class="stat-main text-danger" id="mDashLoan">₱0</div>
-                <p class="small text-muted mb-0">Includes current cycle interest</p>
-            </div>
-        </div>
+        <div class="col-md-4"><div class="card p-3"><h6>Total Pool</h6><h3 id="mTotalPool">₱0</h3></div></div>
+        <div class="col-md-4"><div class="card p-3"><h6>Group Profit</h6><h3 class="text-success" id="mTotalProfit">₱0</h3></div></div>
+        <div class="col-md-4"><div class="card p-3"><h6>My Debt</h6><h3 class="text-danger" id="mDashLoan">₱0</h3></div></div>
     </div>
-
-    <div class="row g-4">
+    <div class="row">
         <div class="col-lg-4">
-            <div class="card h-100">
-                <div class="card-header"><i class="fas fa-chart-line me-2"></i>Transparency Report</div>
-                <div class="card-body">
-                    <div class="mb-4">
-                        <label class="stat-label">Your Share Weight</label>
-                        <div class="progress mt-2" style="height: 10px;">
-                            <div id="mWeightBar" class="progress-bar bg-primary" style="width: 0%"></div>
-                        </div>
-                        <div class="d-flex justify-content-between mt-1"><span class="small fw-bold" id="mWeightText">0%</span><span class="small text-muted">of total fund</span></div>
-                    </div>
-                    <ul class="list-group list-group-flush small">
-                        <li class="list-group-item d-flex justify-content-between"><span>Group Interest Rate:</span><span id="mSetInt">0%</span></li>
-                        <li class="list-group-item d-flex justify-content-between"><span>Standard Contribution:</span><span id="mSetCont">₱0</span></li>
-                        <li class="list-group-item d-flex justify-content-between"><span>Active Group Loans:</span><span id="mActiveLoans">₱0</span></li>
-                    </ul>
-                </div>
+            <div class="card p-4 h-100">
+                <h6 class="fw-bold mb-3">Transparency Report</h6>
+                <div class="small mb-3">Share Weight: <b id="mWeightText">0%</b></div>
+                <div class="progress mb-3" style="height:8px"><div id="mWeightBar" class="progress-bar bg-primary"></div></div>
+                <div class="small d-flex justify-content-between border-bottom py-2"><span>Interest Rate:</span><span id="mSetInt">0%</span></div>
+                <div class="small d-flex justify-content-between border-bottom py-2"><span>Standard Contri:</span><span id="mSetCont">₱0</span></div>
             </div>
         </div>
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header"><i class="fas fa-history me-2"></i>My Payment & Audit History</div>
-                <div class="card-body">
-                    <div id="paymentTimeline" class="p-3"></div>
-                </div>
-            </div>
-        </div>
+        <div class="col-lg-8"><div class="card p-4 h-100"><h6>My Audit & Payment History</h6><div id="paymentTimeline" class="mt-3"></div></div></div>
     </div>
 </div>
 
@@ -179,6 +154,7 @@
     let currentUser = null;
 
     function confirmAction(msg, action) { if(confirm(msg)) action(); }
+    function addLog(act) { appData.logs.push({ by: currentUser.email.split('@')[0], act: act, at: new Date().toLocaleTimeString() }); if(appData.logs.length > 50) appData.logs.shift(); }
 
     auth.onAuthStateChanged(user => {
         if (user) {
@@ -196,6 +172,9 @@
     function renderAdmin() {
         const showAll = document.getElementById('toggleShowAll').checked;
         const activeIdx = appData.cycles.length - 1;
+        document.getElementById('setConfigAmount').value = appData.settings.contri;
+        document.getElementById('setConfigInterest').value = appData.settings.interest;
+
         const head = document.getElementById('tableHead');
         let h1 = '<tr><th class="text-start">Member</th>';
         let h2 = '<tr><td class="small text-muted text-start">Carry Over</td>';
@@ -205,7 +184,7 @@
             h2 += `<th class="small border-start ${isHidden}">15th</th><th class="small ${isHidden}">30th</th>`;
         });
         head.innerHTML = h1 + '<th class="border-start">TOTAL</th></tr>' + h2 + '<td></td></tr>';
-        
+
         const body = document.getElementById('tableBody'); body.innerHTML = '';
         let totalSavings = 0;
         appData.members.forEach((m, mIdx) => {
@@ -221,67 +200,68 @@
             body.innerHTML += `<tr>${cells}<td class="fw-bold text-primary border-start">₱${mSum.toLocaleString()}</td></tr>`;
         });
 
-        // Loans List with Partial Pay
         const lList = document.getElementById('loanLedgerList'); lList.innerHTML = '';
         let actLoans = 0;
         appData.loans.forEach((l, idx) => {
             actLoans += Number(l.principal);
-            lList.innerHTML += `<div class="p-2 border-bottom small d-flex justify-content-between"><span>${l.borrower}: ₱${l.principal}</span><div><button class="btn btn-xs btn-outline-success py-0" onclick="collectLoan(${idx})">F</button> <button class="btn btn-xs btn-outline-primary py-0" onclick="partialPay(${idx})">P</button></div></div>`;
+            lList.innerHTML += `<div class="p-2 border-bottom d-flex justify-content-between align-items-center"><span>${l.borrower}: ₱${l.principal}</span><div><button class="btn btn-xs btn-outline-success py-0" onclick="collectLoan(${idx})">F</button> <button class="btn btn-xs btn-outline-primary py-0" onclick="partialPay(${idx})">P</button></div></div>`;
         });
-        
-        const lSel = document.getElementById('loanMemberSelect'); lSel.innerHTML = '<option value="">Borrower...</option>';
-        appData.members.forEach(m => lSel.innerHTML += `<option value="${m.name}">${m.name}</option>`);
 
         document.getElementById('admCash').innerText = `₱${(totalSavings + appData.profit - actLoans).toLocaleString()}`;
         document.getElementById('admLoans').innerText = `₱${actLoans.toLocaleString()}`;
         document.getElementById('admProfit').innerText = `₱${appData.profit.toLocaleString()}`;
         document.getElementById('admPool').innerText = `₱${(totalSavings + appData.profit).toLocaleString()}`;
+        document.getElementById('auditLogs').innerHTML = (appData.logs || []).slice(-15).reverse().map(l => `<div class="log-entry"><b>${l.by}:</b> ${l.act}</div>`).join('');
+        
+        const reqs = (appData.requests || []).filter(r => r.status === 'pending');
+        document.getElementById('adminRequestList').innerHTML = reqs.map((r, i) => `<div class="alert alert-info py-1 small d-flex justify-content-between">${r.name} (₱${r.amt}) <button class="btn btn-sm btn-success py-0" onclick="approveRequest(${i})">OK</button></div>`).join('') || '<small>No requests.</small>';
+        
+        const lSel = document.getElementById('loanMemberSelect'); lSel.innerHTML = '<option value="">Borrower...</option>';
+        appData.members.forEach(m => lSel.innerHTML += `<option value="${m.name}">${m.name}</option>`);
     }
 
     function renderMember(user) {
         const m = appData.members.find(x => x.email.toLowerCase() === user.email.toLowerCase());
         if(!m) return;
-        
-        let totalFund = 0; appData.members.forEach(m => { totalFund += Number(m.carryOver || 0); m.payments.forEach(p => { if(p) totalFund += Number(appData.settings.contri); }); });
+        let pool = 0; appData.members.forEach(m => { pool += Number(m.carryOver || 0); m.payments.forEach(p => { if(p) pool += Number(appData.settings.contri); }); });
         let mySaved = Number(m.carryOver || 0); m.payments.forEach(p => { if(p) mySaved += Number(appData.settings.contri); });
-        const weight = totalFund > 0 ? (mySaved / totalFund) : 0;
+        const weight = pool > 0 ? (mySaved / pool) : 0;
         const myLoan = appData.loans.find(l => l.borrower === m.name);
-        const actLoanTotal = appData.loans.reduce((a, b) => a + Number(b.principal), 0);
 
         document.getElementById('mDashName').innerText = m.name;
         document.getElementById('mDashContri').innerText = `₱${mySaved.toLocaleString()}`;
         document.getElementById('mDashShare').innerText = `₱${(weight * appData.profit).toLocaleString(undefined, {maximumFractionDigits:0})}`;
-        document.getElementById('mTotalPool').innerText = `₱${totalFund.toLocaleString()}`;
+        document.getElementById('mTotalPool').innerText = `₱${pool.toLocaleString()}`;
         document.getElementById('mTotalProfit').innerText = `₱${appData.profit.toLocaleString()}`;
         document.getElementById('mDashLoan').innerText = myLoan ? `₱${(Number(myLoan.principal) * (1 + appData.settings.interest/100)).toLocaleString()}` : "₱0";
         document.getElementById('mWeightBar').style.width = (weight * 100) + "%";
         document.getElementById('mWeightText').innerText = (weight * 100).toFixed(2) + "%";
         document.getElementById('mSetInt').innerText = appData.settings.interest + "%";
         document.getElementById('mSetCont').innerText = "₱" + appData.settings.contri;
-        document.getElementById('mActiveLoans').innerText = "₱" + actLoanTotal.toLocaleString();
 
         const timeline = document.getElementById('paymentTimeline'); timeline.innerHTML = '';
         m.payments.forEach((p, idx) => {
             const mName = appData.cycles[Math.floor(idx/2)]; const cut = idx % 2 === 0 ? '15th' : '30th';
-            timeline.innerHTML += `<div class="timeline-item"><b>${mName} ${cut}</b><br><span class="${p?'text-success fw-bold':'text-muted'}">${p?'Verified Payment':'Awaiting Deposit'}</span></div>`;
+            timeline.innerHTML += `<div class="timeline-item"><b>${mName} ${cut}</b><br><span class="${p?'text-success fw-bold':'text-muted'}">${p?'Verified':'Pending'}</span></div>`;
         });
     }
 
-    // CORE LOGIC (Restored and Protected)
+    // ACTIONS
     function save() { db.collection("system").doc("main").set(appData); }
     function signIn() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function signOut() { auth.signOut().then(() => location.reload()); }
     function showPage(id) { ['loginPage', 'adminDashboard', 'memberDashboard'].forEach(p => document.getElementById(p).style.display = (p === id) ? (p === 'loginPage' ? 'flex' : 'block') : 'none'); }
-    function togglePay(mIdx, pIdx) { appData.members[mIdx].payments[pIdx] = !appData.members[mIdx].payments[pIdx]; save(); }
-    function releaseLoan() { const amt = Number(document.getElementById('loanAmtInput').value); const n = document.getElementById('loanTypeSelect').value === 'member' ? document.getElementById('loanMemberSelect').value : document.getElementById('nonMemberName').value; if(amt && n) { appData.loans.push({ borrower: n, principal: amt }); save(); } }
-    function collectLoan(idx) { appData.profit += (Number(appData.loans[idx].principal) * (appData.settings.interest/100)); appData.loans.splice(idx, 1); save(); }
-    function partialPay(idx) { const p = prompt("Partial Amount?"); if(p && !isNaN(p)) { const val = Number(p); appData.profit += (val * (appData.settings.interest/100)); appData.loans[idx].principal -= val; if(appData.loans[idx].principal <= 0) appData.loans.splice(idx,1); save(); } }
+    function togglePay(mIdx, pIdx) { appData.members[mIdx].payments[pIdx] = !appData.members[mIdx].payments[pIdx]; addLog('Update Ledger'); save(); }
+    function releaseLoan() { const amt = Number(document.getElementById('loanAmtInput').value); const n = document.getElementById('loanTypeSelect').value === 'member' ? document.getElementById('loanMemberSelect').value : document.getElementById('nonMemberName').value; if(amt && n) { appData.loans.push({ borrower: n, principal: amt }); addLog(`Disburse ₱${amt}`); save(); } }
+    function collectLoan(idx) { appData.profit += (Number(appData.loans[idx].principal) * (appData.settings.interest/100)); addLog('Loan Paid'); appData.loans.splice(idx, 1); save(); }
+    function partialPay(idx) { const p = prompt("Amount?"); if(p) { const val = Number(p); appData.profit += (val * (appData.settings.interest/100)); appData.loans[idx].principal -= val; if(appData.loans[idx].principal <= 0) appData.loans.splice(idx,1); addLog('Partial Pay'); save(); } }
+    function updateSettings() { appData.settings.contri = Number(document.getElementById('setConfigAmount').value); appData.settings.interest = Number(document.getElementById('setConfigInterest').value); addLog('Settings Changed'); save(); }
     function exportBackup() { const dl = document.createElement('a'); dl.setAttribute("href", "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData))); dl.setAttribute("download", "SF_Backup.json"); dl.click(); }
     function addMember() { const n = prompt("Name:"); const e = prompt("Email:"); if(n && e) { appData.members.push({ name: n, email: e.toLowerCase(), payments: new Array(appData.cycles.length*2).fill(false), carryOver: 0 }); save(); } }
     function suggestNextMonth() { const next = monthSeq[(monthSeq.indexOf(appData.cycles[appData.cycles.length-1]) + 1) % 12]; appData.cycles.push(next); appData.members.forEach(m => { while(m.payments.length < appData.cycles.length*2) m.payments.push(false); }); save(); }
     function toggleLoanType() { const t = document.getElementById('loanTypeSelect').value; document.getElementById('memberLoanBox').classList.toggle('d-none', t !== 'member'); document.getElementById('nonMemberLoanBox').classList.toggle('d-none', t !== 'non'); }
-    function requestLoan() { const amt = prompt("Amount?"); if(amt) { appData.requests.push({ name: currentUser.displayName, email: currentUser.email, amt: Number(amt), status: 'pending' }); save(); alert("Request Sent!"); } }
-    function closeFiscalYear() { /* Logic for year end */ save(); }
+    function requestLoan() { const amt = prompt("Amount?"); if(amt) { appData.requests.push({ name: currentUser.displayName, email: currentUser.email, amt: Number(amt), status: 'pending' }); save(); } }
+    function approveRequest(idx) { const r = appData.requests[idx]; appData.loans.push({ borrower: r.name, principal: r.amt }); r.status = 'approved'; save(); }
 </script>
 </body>
 </html>
