@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SF PRO v10.41 | Professional Suite</title>
+    <title>SF PRO v10.42 | High-Contrast Suite</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -11,126 +11,116 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { 
-            --navy: #0a192f; --cobalt: #112240; --accent: #64ffda; 
-            --glass: rgba(255, 255, 255, 0.05); --danger: #ff4d4d; --success: #2ecc71;
-            --table-head: #1e293b; --table-row-alt: rgba(100, 255, 218, 0.02);
+            --bg-deep: #020617; --bg-card: #0f172a; --accent: #38bdf8; 
+            --text-main: #f1f5f9; --text-muted: #94a3b8; --border-glass: rgba(255, 255, 255, 0.1);
+            --success: #22c55e; --danger: #ef4444; --warning: #f59e0b;
         }
-        body { background-color: #0f172a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
-        .navbar { background: var(--navy); border-bottom: 1px solid var(--glass); backdrop-filter: blur(10px); }
-        .card { background: var(--cobalt); border: 1px solid var(--glass); border-radius: 16px; color: white; }
+        body { background-color: var(--bg-deep); color: var(--text-main); font-family: 'Inter', system-ui, sans-serif; }
+        .navbar { background: var(--bg-deep); border-bottom: 1px solid var(--border-glass); }
+        .card { background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
         
-        /* FIXED LEDGER UI */
-        .ledger-wrapper { 
-            max-height: 450px; overflow: auto; border-radius: 12px; 
-            border: 1px solid var(--glass); background: #0d1117; 
+        /* THE FIXED LEDGER UI */
+        .ledger-container { 
+            border-radius: 12px; overflow: hidden; border: 1px solid var(--border-glass); 
+            background: #020617; position: relative;
         }
-        .table { color: #cbd5e1; border-color: var(--glass); margin-bottom: 0; }
-        .table thead { background: var(--table-head); color: var(--accent); position: sticky; top: 0; z-index: 10; }
-        .table thead th { border-bottom: 2px solid var(--accent) !important; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-        .table tbody tr { border-bottom: 1px solid var(--glass); transition: background 0.2s; }
-        .table tbody tr:hover { background: rgba(100, 255, 218, 0.05); }
-        .table tbody td { padding: 12px 8px; vertical-align: middle; }
-        .table-striped tbody tr:nth-of-type(odd) { background-color: var(--table-row-alt); }
+        .table { color: var(--text-main); margin-bottom: 0; border-collapse: separate; border-spacing: 0; }
+        .table thead { background: #1e293b; position: sticky; top: 0; z-index: 10; }
+        .table thead th { 
+            border-bottom: 2px solid var(--accent) !important; color: var(--accent);
+            text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; padding: 12px;
+        }
+        .table tbody tr { transition: background 0.15s ease; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .table tbody tr:hover { background: rgba(56, 189, 248, 0.08); }
+        .table tbody td { padding: 14px 10px; vertical-align: middle; border: none; }
         
-        /* CUSTOM CHECKBOX */
-        .form-check-input { 
-            background-color: #1e293b; border: 1px solid var(--accent); 
-            width: 1.2em; height: 1.2em; cursor: pointer;
-        }
-        .form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
+        /* Member Name Cell Enhancement */
+        .member-cell { text-align: left; min-width: 150px; }
+        .member-name { font-weight: 700; color: #fff; display: block; }
+        .member-meta { font-size: 0.65rem; color: var(--text-muted); }
 
-        .btn-accent { background: transparent; border: 1px solid var(--accent); color: var(--accent); font-weight: 600; }
-        .btn-accent:hover { background: var(--accent); color: var(--navy); }
-        #loginPage { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at top right, #1e293b, #0f172a); }
-        .login-card { background: var(--cobalt); padding: 3rem; border-radius: 24px; width: 100%; max-width: 420px; text-align: center; border: 1px solid var(--glass); }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: var(--glass); border-radius: 10px; }
+        /* Checkbox Styling */
+        .form-check-input { 
+            background-color: #334155; border: 1px solid var(--text-muted); width: 1.25rem; height: 1.25rem; cursor: pointer;
+        }
+        .form-check-input:checked { background-color: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
+
+        /* Stat Cards */
+        .stat-val { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; }
+        .btn-action { background: var(--accent); color: #000; font-weight: 700; border: none; }
+        .btn-action:hover { background: #7dd3fc; }
+        #loginPage { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: var(--bg-card); padding: 3rem; border-radius: 20px; border: 1px solid var(--border-glass); width: 100%; max-width: 400px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="loginPage">
-    <div class="login-card">
-        <div class="mb-4"><i class="fas fa-shield-halved fa-3x text-accent"></i></div>
-        <h2 class="fw-bold mb-1">SF PRO <span class="text-accent">V10.41</span></h2>
-        <p class="text-muted small mb-4">Secure Capital Management System</p>
-        <button class="btn btn-accent w-100 py-3 rounded-pill" onclick="signIn()">
-            <i class="fab fa-google me-2"></i> Authorized Sign In
-        </button>
+    <div class="login-box">
+        <h2 class="fw-bold mb-1">SF <span class="text-accent">CLOUD</span></h2>
+        <p class="text-muted small mb-4">v10.42 Midnight Edition</p>
+        <button class="btn btn-action w-100 py-2 rounded-pill" onclick="signIn()"><i class="fab fa-google me-2"></i>Secure Access</button>
     </div>
 </div>
 
 <nav id="topNav" class="navbar navbar-dark sticky-top" style="display:none">
     <div class="container-fluid px-4">
-        <span class="navbar-brand fw-bold"><i class="fas fa-chart-line text-accent me-2"></i>SF PLATINUM</span>
-        <div class="d-flex align-items-center gap-3">
-            <span id="userBadge" class="small text-muted d-none d-md-inline"></span>
-            <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="signOut()"><i class="fas fa-power-off"></i></button>
-        </div>
+        <span class="navbar-brand fw-bold text-accent">SF PLATINUM</span>
+        <button class="btn btn-sm btn-outline-danger" onclick="signOut()"><i class="fas fa-power-off"></i></button>
     </div>
 </nav>
 
 <div id="adminDashboard" class="container-fluid px-4 py-4" style="display:none">
     <div class="row g-3 mb-4">
-        <div class="col-md-3"><div class="card p-3"><h6>Cash on Hand</h6><h3 id="admCash">₱0</h3></div></div>
-        <div class="col-md-3"><div class="card p-3"><h6>Active Loans</h6><h3 id="admLoans">₱0</h3></div></div>
-        <div class="col-md-3"><div class="card p-3"><h6>Net Profit</h6><h3 id="admProfit">₱0</h3></div></div>
-        <div class="col-md-3"><div class="card p-3"><h6>Fund Worth</h6><h3 id="admPool">₱0</h3></div></div>
+        <div class="col-md-3"><div class="card p-3"><h6>Cash on Hand</h6><div class="stat-val text-success" id="admCash">₱0</div></div></div>
+        <div class="col-md-3"><div class="card p-3"><h6>Total Loans</h6><div class="stat-val text-danger" id="admLoans">₱0</div></div></div>
+        <div class="col-md-3"><div class="card p-3"><h6>Net Profit</h6><div class="stat-val text-accent" id="admProfit">₱0</div></div></div>
+        <div class="col-md-3"><div class="card p-3"><h6>Fund Worth</h6><div class="stat-val text-white" id="admPool">₱0</div></div></div>
     </div>
 
     <div class="row g-4">
-        <div class="col-lg-8">
-            <div class="card p-4 mb-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold m-0 text-accent">Financial Ledger</h5>
-                    <div class="btn-group gap-2">
-                        <button class="btn btn-sm btn-accent rounded" onclick="exportBackup()"><i class="fas fa-download me-1"></i> Backup</button>
-                        <button class="btn btn-sm btn-outline-info rounded" onclick="suggestNextMonth()">+ Month</button>
+        <div class="col-lg-9">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold m-0"><i class="fas fa-table me-2 text-accent"></i>Management Ledger</h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-info" onclick="exportBackup()"><i class="fas fa-cloud-download-alt"></i> Backup</button>
+                        <button class="btn btn-sm btn-action" onclick="suggestNextMonth()">+ Add Month</button>
                     </div>
                 </div>
-                <div class="ledger-wrapper">
-                    <table class="table table-striped align-middle text-center small">
+                <div class="ledger-container overflow-auto">
+                    <table class="table text-center small">
                         <thead id="tableHead"></thead>
                         <tbody id="tableBody"></tbody>
                     </table>
                 </div>
             </div>
-            
-            <div class="row g-4">
-                <div class="col-md-6"><div class="card p-4 h-100"><h6>Loan Requests</h6><div id="adminRequestList"></div></div></div>
-                <div class="col-md-6"><div class="card p-4 h-100"><h6>Audit Trail</h6><div id="auditLogs" style="max-height: 250px; overflow: auto;"></div></div></div>
-            </div>
         </div>
 
-        <div class="col-lg-4">
+        <div class="col-lg-3">
             <div class="card p-4 mb-4">
-                <h6>Member Management</h6>
-                <button class="btn btn-sm btn-accent w-100 mb-3" onclick="addMember()">+ Register Member</button>
-                <div id="memberControlList" class="overflow-auto" style="max-height: 200px;"></div>
-            </div>
-
-            <div class="card p-4 mb-4">
-                <h6 class="text-danger">Loan Center</h6>
-                <select id="loanTypeSelect" class="form-select form-select-sm mb-2" onchange="toggleLoanType()">
+                <h6 class="text-accent mb-3">Release Loan</h6>
+                <select id="loanTypeSelect" class="form-select form-select-sm mb-2" style="background:#1e293b; color:white; border:none;" onchange="toggleLoanType()">
                     <option value="member">Member</option>
                     <option value="non">Guest</option>
                 </select>
-                <div id="memberLoanBox"><select id="loanMemberSelect" class="form-select form-select-sm mb-2"></select></div>
-                <div id="nonMemberLoanBox" class="d-none"><input type="text" id="nonMemberName" class="form-control form-control-sm mb-2" placeholder="Guest Name"></div>
-                <input type="number" id="loanAmtInput" class="form-control form-control-sm mb-3" placeholder="Amount (₱)">
-                <button class="btn btn-sm btn-danger w-100 fw-bold" onclick="releaseLoan()">DISBURSE</button>
-                <hr><div id="loanLedgerList" style="max-height: 150px; overflow: auto;"></div>
+                <div id="memberLoanBox"><select id="loanMemberSelect" class="form-select form-select-sm mb-2" style="background:#1e293b; color:white; border:none;"></select></div>
+                <div id="nonMemberLoanBox" class="d-none"><input type="text" id="nonMemberName" class="form-control form-control-sm mb-2" style="background:#1e293b; color:white; border:none;" placeholder="Name"></div>
+                <input type="number" id="loanAmtInput" class="form-control form-control-sm mb-3" style="background:#1e293b; color:white; border:none;" placeholder="Amount (₱)">
+                <button class="btn btn-action w-100 btn-sm" onclick="releaseLoan()">DISBURSE</button>
+                <hr>
+                <div id="loanLedgerList" style="max-height: 200px; overflow:auto;"></div>
             </div>
-
+            
             <div class="card p-4">
-                <h6>Settings & Close Year</h6>
+                <h6 class="mb-3">Global Settings</h6>
                 <div class="row g-2 mb-3">
-                    <div class="col-6"><label class="small text-muted">Contri (₱)</label><input type="number" id="setConfigAmount" class="form-control form-control-sm"></div>
-                    <div class="col-6"><label class="small text-muted">Interest %</label><input type="number" id="setConfigInterest" class="form-control form-control-sm"></div>
+                    <div class="col-6"><label class="small text-muted">Contri</label><input type="number" id="setConfigAmount" class="form-control form-control-sm bg-dark text-white border-0"></div>
+                    <div class="col-6"><label class="small text-muted">Int. %</label><input type="number" id="setConfigInterest" class="form-control form-control-sm bg-dark text-white border-0"></div>
                 </div>
-                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="updateSettings()">Apply</button>
+                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="updateSettings()">Save Config</button>
                 <button class="btn btn-sm btn-outline-warning w-100 mb-2" onclick="closeFiscalYear()">Close Year</button>
-                <button class="btn btn-sm btn-link text-danger w-100" onclick="secureSystemWipe()">Full Wipe</button>
+                <button class="btn btn-sm btn-outline-primary w-100" onclick="addMember()">Register Member</button>
             </div>
         </div>
     </div>
@@ -138,20 +128,20 @@
 
 <div id="memberDashboard" class="container py-4" style="display:none">
     <div class="row g-4">
-        <div class="col-lg-5">
-            <div class="card p-4 mb-4" style="background: linear-gradient(135deg, #112240 0%, #1e293b 100%);">
-                <h5 id="mDashName" class="fw-bold text-accent"></h5>
-                <div class="row mt-4">
-                    <div class="col-6"><p class="small text-muted mb-0">SAVINGS</p><h3 id="mDashContri">₱0</h3></div>
-                    <div class="col-6"><p class="small text-muted mb-0">PROFIT</p><h3 id="mDashShare" class="text-accent">₱0</h3></div>
+        <div class="col-md-5">
+            <div class="card p-4 text-center">
+                <h2 id="mDashName" class="text-accent fw-bold mb-4"></h2>
+                <div class="row">
+                    <div class="col-6"><small class="text-muted d-block">MY SAVINGS</small><h3 id="mDashContri" class="fw-bold">₱0</h3></div>
+                    <div class="col-6"><small class="text-muted d-block">DIVIDENDS</small><h3 id="mDashShare" class="text-success">₱0</h3></div>
                 </div>
-                <div class="mt-4 p-3 rounded bg-dark d-flex justify-content-between align-items-center">
-                    <span class="small">DUE: <b id="mDashLoan" class="text-danger">₱0</b></span>
-                    <button class="btn btn-sm btn-accent px-3 rounded-pill" onclick="requestLoan()">BORROW</button>
+                <div class="mt-4 p-3 bg-dark rounded d-flex justify-content-between">
+                    <span>Balance Due: <b id="mDashLoan" class="text-danger">₱0</b></span>
+                    <button class="btn btn-sm btn-action py-0 px-3" onclick="requestLoan()">BORROW</button>
                 </div>
             </div>
         </div>
-        <div class="col-lg-7"><div class="card p-4 h-100"><h6>Verification History</h6><div id="paymentTimeline" class="overflow-auto" style="max-height: 500px;"></div></div></div>
+        <div class="col-md-7"><div class="card p-4 h-100"><h6>Payment Record</h6><div id="paymentTimeline" class="overflow-auto" style="max-height: 400px;"></div></div></div>
     </div>
 </div>
 
@@ -165,7 +155,6 @@
         appId: "1:943953104162:web:872f8dbc6f3fac7c63a97b"
     };
     const ADMINS = ["ev.lorens.ebrado@gmail.com", "ev.anderson4470@gmail.com"];
-    const OB_WIPE = "MjQ4NjE3";
     const monthSeq = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     firebase.initializeApp(firebaseConfig);
@@ -191,41 +180,37 @@
         document.getElementById('setConfigAmount').value = appData.settings.contri;
         document.getElementById('setConfigInterest').value = appData.settings.interest;
 
-        // Render Head
+        // TABLE HEADER
         const head = document.getElementById('tableHead');
-        let h1 = '<tr><th>Member</th>'; let h2 = '<tr><td class="small text-accent">Bal</td>';
-        appData.cycles.forEach(c => { h1 += `<th colspan="2">${c}</th>`; h2 += `<th class="small">15</th><th class="small">30</th>`; });
-        head.innerHTML = h1 + '<th class="text-accent">TOTAL</th></tr>' + h2 + '<td></td></tr>';
+        let h1 = '<tr><th>Member Profile</th>'; let h2 = '<tr><td class="small text-muted">Prev Bal.</td>';
+        appData.cycles.forEach(c => { h1 += `<th colspan="2" class="text-accent border-start border-secondary">${c}</th>`; h2 += `<th class="small border-start border-secondary">15th</th><th class="small">30th</th>`; });
+        head.innerHTML = h1 + '<th class="text-white border-start border-secondary">NET TOTAL</th></tr>' + h2 + '<td class="border-start border-secondary"></td></tr>';
 
-        // Render Body
+        // TABLE BODY
         const body = document.getElementById('tableBody'); body.innerHTML = '';
         let totalSavings = 0;
         appData.members.forEach((m, mIdx) => {
             let mSum = Number(m.carryOver || 0);
-            let cells = `<td class="text-start fw-bold text-white">${m.name} <small class="text-muted d-block" style="font-size:0.6rem">C/O: ₱${mSum}</small></td>`;
+            let cells = `<td class="member-cell"><span class="member-name">${m.name}</span><span class="member-meta">Carry: ₱${mSum}</span></td>`;
             m.payments.forEach((p, pIdx) => { 
                 if(p) mSum += Number(appData.settings.contri); 
-                cells += `<td><input type="checkbox" class="form-check-input" ${p?'checked':''} onclick="togglePay(${mIdx},${pIdx})"></td>`; 
+                cells += `<td class="${pIdx%2===0?'border-start border-secondary':''}"><input type="checkbox" class="form-check-input" ${p?'checked':''} onclick="togglePay(${mIdx},${pIdx})"></td>`; 
             });
             totalSavings += mSum;
-            body.innerHTML += `<tr>${cells}<td class="fw-bold text-accent">₱${mSum.toLocaleString()}</td></tr>`;
+            body.innerHTML += `<tr>${cells}<td class="fw-bold text-accent border-start border-secondary">₱${mSum.toLocaleString()}</td></tr>`;
         });
 
-        const logBox = document.getElementById('auditLogs');
-        logBox.innerHTML = (appData.logs || []).slice(-15).reverse().map(l => `<div class="p-1 border-bottom border-secondary small"><b>${l.by}:</b> ${l.act}</div>`).join('');
-
-        const mCtrl = document.getElementById('memberControlList'); mCtrl.innerHTML = '';
-        const lSel = document.getElementById('loanMemberSelect'); lSel.innerHTML = '<option value="">Target</option>';
-        appData.members.forEach((m, idx) => {
-            lSel.innerHTML += `<option value="${m.name}">${m.name}</option>`;
-            mCtrl.innerHTML += `<div class="d-flex justify-content-between py-1 border-bottom border-secondary"><span class="small">${m.name}</span><i class="fas fa-trash text-danger" onclick="deleteMember(${idx})" style="cursor:pointer"></i></div>`;
-        });
-
+        // LOAN LIST
+        const lSel = document.getElementById('loanMemberSelect'); lSel.innerHTML = '<option value="">Target...</option>';
+        appData.members.forEach(m => lSel.innerHTML += `<option value="${m.name}">${m.name}</option>`);
+        
         const loanList = document.getElementById('loanLedgerList'); loanList.innerHTML = '';
         let activeLoansTotal = 0;
         appData.loans.forEach((l, idx) => {
             activeLoansTotal += Number(l.principal);
-            loanList.innerHTML += `<div class="p-1 border-bottom small d-flex justify-content-between"><span>${l.borrower}: ₱${l.principal}</span><button class="btn btn-sm btn-outline-success py-0" onclick="collectLoan(${idx})">C</button></div>`;
+            loanList.innerHTML += `<div class="p-2 border-bottom border-secondary d-flex justify-content-between align-items-center">
+                <span class="small">${l.borrower}: <b>₱${l.principal}</b></span>
+                <button class="btn btn-sm btn-outline-success py-0" onclick="collectLoan(${idx})">Collect</button></div>`;
         });
 
         document.getElementById('admCash').innerText = `₱${(totalSavings + Number(appData.profit) - activeLoansTotal).toLocaleString()}`;
@@ -240,19 +225,18 @@
         let totalPool = 0; appData.members.forEach(m => { totalPool += Number(m.carryOver || 0); m.payments.forEach(p => { if(p) totalPool += Number(appData.settings.contri); }); });
         let mySaved = Number(member.carryOver || 0); member.payments.forEach(p => { if(p) mySaved += Number(appData.settings.contri); });
         const myShare = totalPool > 0 ? (mySaved / totalPool) * Number(appData.profit) : 0;
-        document.getElementById('mDashName').innerText = member.name.toUpperCase();
+        document.getElementById('mDashName').innerText = member.name;
         document.getElementById('mDashContri').innerText = `₱${mySaved.toLocaleString()}`;
         document.getElementById('mDashShare').innerText = `₱${myShare.toLocaleString(undefined, {maximumFractionDigits:0})}`;
     }
 
-    function addLog(act) { appData.logs.push({ by: currentUser.email.split('@')[0], act: act, at: new Date().toLocaleTimeString() }); if(appData.logs.length > 50) appData.logs.shift(); }
     function save() { db.collection("system").doc("main").set(appData); }
     function signIn() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function signOut() { auth.signOut().then(() => location.reload()); }
     function showPage(id) { ['loginPage', 'adminDashboard', 'memberDashboard'].forEach(p => document.getElementById(p).style.display = (p === id) ? (p === 'loginPage' ? 'flex' : 'block') : 'none'); }
-    function togglePay(mIdx, pIdx) { appData.members[mIdx].payments[pIdx] = !appData.members[mIdx].payments[pIdx]; addLog(`Ledger Update`); save(); }
+    function togglePay(mIdx, pIdx) { appData.members[mIdx].payments[pIdx] = !appData.members[mIdx].payments[pIdx]; save(); }
     function updateSettings() { appData.settings.contri = Number(document.getElementById('setConfigAmount').value); appData.settings.interest = Number(document.getElementById('setConfigInterest').value); save(); }
-    function exportBackup() { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `Backup.json`); dl.click(); }
+    function exportBackup() { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `SF_Backup.json`); dl.click(); }
     function releaseLoan() { const amt = Number(document.getElementById('loanAmtInput').value); let name = document.getElementById('loanTypeSelect').value === 'member' ? document.getElementById('loanMemberSelect').value : document.getElementById('nonMemberName').value; if(amt && name) { appData.loans.push({ borrower: name, principal: amt }); save(); } }
     function collectLoan(idx) { appData.profit += (Number(appData.loans[idx].principal) * (appData.settings.interest/100)); appData.loans.splice(idx, 1); save(); }
     function addMember() { const n = prompt("Name:"); const e = prompt("Email:"); if(n && e) { appData.members.push({ name: n, email: e.trim().toLowerCase(), payments: new Array(appData.cycles.length*2).fill(false), carryOver: 0 }); save(); } }
