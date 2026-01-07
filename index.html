@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PH SF Cloud v10.35 - Fiscal Year Ready</title>
+    <title>PH SF Cloud v10.36</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -17,11 +17,9 @@
         .navbar { background-color: var(--primary-blue); border-bottom: 3px solid var(--warning-gold); }
         .ledger-wrapper { max-height: 400px; overflow: auto; border-radius: 10px; background: white; border: 1px solid #ddd; }
         .card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
-        .log-entry { font-size: 0.75rem; border-bottom: 1px solid #eee; padding: 5px; }
+        .log-entry { font-size: 0.72rem; border-bottom: 1px solid #eee; padding: 4px; }
         .request-item { border-left: 4px solid var(--warning-gold); background: #fffdf5; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
         .transparency-card { background: linear-gradient(135deg, #003366 0%, #00509d 100%); color: white; }
-        .btn-fiscal { background-color: #6610f2; color: white; border: none; }
-        .btn-fiscal:hover { background-color: #520dc2; color: white; }
     </style>
 </head>
 <body>
@@ -29,7 +27,7 @@
 <div id="loginPage">
     <div class="login-card">
         <h2 class="fw-bold text-primary">SF Cloud</h2>
-        <p class="text-muted small">Professional Suite v10.35</p>
+        <p class="text-muted small">v10.36 Master Admin</p>
         <button class="btn btn-outline-dark w-100 mt-3 d-flex align-items-center justify-content-center gap-2" onclick="signIn()">
             <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="18"> Sign in with Google
         </button>
@@ -38,16 +36,16 @@
 
 <nav id="topNav" class="navbar navbar-dark mb-4 sticky-top">
     <div class="container d-flex justify-content-between">
-        <span class="navbar-brand fw-bold">🇵🇭 SF PRO v10.35</span>
+        <span class="navbar-brand fw-bold">🇵🇭 SF PRO v10.36</span>
         <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="signOut()">Logout</button>
     </div>
 </nav>
 
 <div id="adminDashboard" class="container-fluid px-4">
     <div class="row mb-4 g-3 text-white text-center">
-        <div class="col-md-3"><div class="card p-3 bg-primary"><h6>Liquid Cash</h6><h2 id="admCash">₱0</h2></div></div>
+        <div class="col-md-3"><div class="card p-3 bg-primary"><h6>Cash on Hand</h6><h2 id="admCash">₱0</h2></div></div>
         <div class="col-md-3"><div class="card p-3 bg-danger"><h6>Active Loans</h6><h2 id="admLoans">₱0</h2></div></div>
-        <div class="col-md-3"><div class="card p-3 bg-success"><h6>Total Profit</h6><h2 id="admProfit">₱0</h2></div></div>
+        <div class="col-md-3"><div class="card p-3 bg-success"><h6>Interest Profit</h6><h2 id="admProfit">₱0</h2></div></div>
         <div class="col-md-3"><div class="card p-3 bg-dark"><h6>Net Fund Value</h6><h2 id="admPool">₱0</h2></div></div>
     </div>
 
@@ -57,8 +55,8 @@
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold text-primary m-0">Master Ledger</h5>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-fiscal fw-bold" onclick="closeFiscalYear()">CLOSE YEAR & DISTRIBUTE</button>
-                        <button class="btn btn-sm btn-success" onclick="suggestNextMonth()">+ Add Month</button>
+                        <button class="btn btn-sm btn-info text-white fw-bold" onclick="closeFiscalYear()">CLOSE YEAR</button>
+                        <button class="btn btn-sm btn-success" onclick="suggestNextMonth()">+ MONTH</button>
                     </div>
                 </div>
                 <div class="ledger-wrapper">
@@ -69,56 +67,89 @@
                 </div>
             </div>
 
-            <div class="card p-4">
-                <h5 class="fw-bold text-warning">Pending Loan Requests</h5>
-                <div id="adminRequestList"></div>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card p-4 h-100">
+                        <h5 class="fw-bold text-warning">Loan Requests</h5>
+                        <div id="adminRequestList"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card p-4 h-100" style="max-height: 300px; overflow: auto;">
+                        <h5 class="fw-bold text-info">Audit Logs</h5>
+                        <div id="auditLogs"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="col-lg-4">
-            <div class="card p-4 mb-4" style="max-height: 250px; overflow: auto;">
-                <h5 class="fw-bold text-info small">Admin Audit Logs</h5>
-                <div id="auditLogs"></div>
+            <div class="card p-4 mb-4 border-top border-primary border-5">
+                <h5 class="fw-bold text-primary">Member Management</h5>
+                <button class="btn btn-sm btn-outline-primary mb-3 w-100" onclick="addMember()">+ Register New Member</button>
+                <div id="memberControlList" class="list-group list-group-flush overflow-auto" style="max-height: 250px;"></div>
             </div>
+
             <div class="card p-4 border-top border-danger border-5 mb-4">
                 <h5 class="fw-bold text-danger">Loan Center</h5>
-                <select id="loanTypeSelect" class="form-select mb-2" onchange="toggleLoanType()"><option value="member">Member</option><option value="non">Non-Member</option></select>
+                <select id="loanTypeSelect" class="form-select mb-2" onchange="toggleLoanType()">
+                    <option value="member">Member</option>
+                    <option value="non">Non-Member</option>
+                </select>
                 <div id="memberLoanBox"><select id="loanMemberSelect" class="form-select mb-2"></select></div>
                 <div id="nonMemberLoanBox" class="d-none"><input type="text" id="nonMemberName" class="form-control mb-2" placeholder="Borrower Name"></div>
                 <input type="number" id="loanAmtInput" class="form-control mb-2" placeholder="Amount (₱)">
                 <button class="btn btn-danger w-100 fw-bold" onclick="releaseLoan()">RELEASE FUNDS</button>
                 <hr><div id="loanLedgerList" style="max-height: 180px; overflow: auto;"></div>
             </div>
-            <button class="btn btn-outline-danger btn-sm w-100" onclick="secureSystemWipe()">Wipe Data</button>
+
+            <div class="card p-4 border-top border-dark border-5 mb-4">
+                <h5 class="fw-bold">Global Settings</h5>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="small fw-bold">Cutoff (₱)</label>
+                        <input type="number" id="setConfigAmount" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-6">
+                        <label class="small fw-bold">Interest (%)</label>
+                        <input type="number" id="setConfigInterest" class="form-control form-control-sm">
+                    </div>
+                </div>
+                <button class="btn btn-dark btn-sm w-100 mt-3" onclick="updateSettings()">Apply Changes</button>
+                <hr>
+                <button class="btn btn-outline-danger btn-sm w-100" onclick="secureSystemWipe()">Full Wipe</button>
+            </div>
         </div>
     </div>
 </div>
 
 <div id="memberDashboard" class="container">
     <div class="row g-3 mb-4 text-center">
-        <div class="col-md-4"><div class="card p-3 shadow-sm text-success"><h6>Group Profit</h6><h2 id="mGroupProfit">₱0</h2></div></div>
-        <div class="col-md-4"><div class="card p-3 shadow-sm text-primary"><h6>Cutoff Rate</h6><h2 id="mContriRate">₱0</h2></div></div>
-        <div class="col-md-4"><div class="card p-3 shadow-sm text-dark"><h6>Loans Out</h6><h2 id="mGroupLoans">₱0</h2></div></div>
+        <div class="col-md-4"><div class="card p-3 shadow-sm text-success"><h6>Group Profit Pool</h6><h2 id="mGroupProfit">₱0</h2></div></div>
+        <div class="col-md-4"><div class="card p-3 shadow-sm text-primary"><h6>Contribution Rate</h6><h2 id="mContriRate">₱0</h2></div></div>
+        <div class="col-md-4"><div class="card p-3 shadow-sm text-dark"><h6>Loans Active</h6><h2 id="mGroupLoans">₱0</h2></div></div>
     </div>
-
     <div class="row g-4">
         <div class="col-lg-5">
             <div class="card p-4 transparency-card border-0 mb-4 shadow text-center">
                 <h2 id="mDashName" class="fw-bold mb-1"></h2>
                 <div class="row mt-3">
                     <div class="col-6 border-end"><small>MY SAVINGS</small><h4 id="mDashContri">₱0</h4></div>
-                    <div class="col-6"><small>MY EARNINGS</small><h4 id="mDashShare" class="text-warning">₱0</h4></div>
+                    <div class="col-6"><small>MY PROFIT SHARE</small><h4 id="mDashShare" class="text-warning">₱0</h4></div>
                 </div>
                 <hr>
                 <div class="d-flex justify-content-between align-items-center">
-                    <small>DUE: <span id="mDashLoan" class="fw-bold">₱0</span></small>
+                    <small>CURRENT DUE: <span id="mDashLoan" class="fw-bold">₱0</span></small>
                     <button class="btn btn-sm btn-light py-0" onclick="requestLoan()">Request Loan</button>
                 </div>
             </div>
-            <div class="card p-4 shadow-sm"><h5 class="fw-bold small">My Loan Status</h5><div id="memberRequestStatus"></div></div>
+            <div class="card p-4 shadow-sm h-100">
+                <h5 class="fw-bold small">Request Tracker</h5>
+                <div id="memberRequestStatus"></div>
+            </div>
         </div>
         <div class="col-lg-7">
-            <div class="card p-4 shadow-sm h-100"><h5 class="fw-bold border-bottom pb-2">Verified Ledger</h5><div id="paymentTimeline" class="overflow-auto" style="max-height: 400px;"></div></div>
+            <div class="card p-4 shadow-sm h-100"><h5 class="fw-bold border-bottom pb-2">Verified Payment Record</h5><div id="paymentTimeline" class="overflow-auto" style="max-height: 450px;"></div></div>
         </div>
     </div>
 </div>
@@ -158,26 +189,46 @@
     });
 
     function renderAdmin() {
-        const logBox = document.getElementById('auditLogs');
-        logBox.innerHTML = (appData.logs || []).slice(-15).reverse().map(l => `<div class="log-entry"><b>${l.by}</b>: ${l.act}</div>`).join('');
+        // Update Settings Fields
+        document.getElementById('setConfigAmount').value = appData.settings.contri;
+        document.getElementById('setConfigInterest').value = appData.settings.interest;
 
+        // Render Logs
+        const logBox = document.getElementById('auditLogs');
+        logBox.innerHTML = (appData.logs || []).slice(-20).reverse().map(l => `<div class="log-entry"><b>${l.by}</b>: ${l.act}</div>`).join('');
+
+        // Render Requests
         const reqBox = document.getElementById('adminRequestList');
         reqBox.innerHTML = (appData.requests || []).filter(r => r.status === 'pending').map((r, i) => `
             <div class="request-item d-flex justify-content-between align-items-center">
-                <div><b>${r.name}</b> (₱${r.amt})<br><small>${r.note}</small></div>
-                <div class="d-flex gap-2"><button class="btn btn-sm btn-success" onclick="processRequest(${i}, 'approved')">Approve</button></div>
-            </div>`).join('') || '<p class="text-muted small">No pending requests.</p>';
+                <div><b>${r.name}</b>: ₱${r.amt}<br><small>${r.note}</small></div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-success" onclick="processRequest(${i}, 'approved')">✓</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="processRequest(${i}, 'rejected')">×</button>
+                </div>
+            </div>`).join('') || '<p class="text-muted small">No requests.</p>';
 
+        // Render Member Management
+        const mCtrl = document.getElementById('memberControlList'); mCtrl.innerHTML = '';
+        const lSel = document.getElementById('loanMemberSelect'); lSel.innerHTML = '<option value="">Select Borrower...</option>';
+        appData.members.forEach((m, idx) => {
+            lSel.innerHTML += `<option value="${m.name}">${m.name}</option>`;
+            mCtrl.innerHTML += `<div class="list-group-item d-flex justify-content-between align-items-center py-2 px-0 bg-transparent">
+                <div><div class="fw-bold small">${m.name}</div><div class="text-muted" style="font-size:0.65rem">${m.email}</div></div>
+                <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteMember(${idx})">×</button></div>`;
+        });
+
+        // Ledger Render
         const head = document.getElementById('tableHead');
-        let h1 = '<tr><th>Member Name</th>'; let h2 = '<tr><td class="small text-muted">Carry Over</td>';
-        appData.cycles.forEach(c => { h1 += `<th colspan="2" class="bg-primary text-white">${c}</th>`; h2 += `<th class="small">15th</th><th class="small">30th</th>`; });
+        let h1 = '<tr><th>Name</th>'; let h2 = '<tr><td class="small">C/O</td>';
+        appData.cycles.forEach(c => { h1 += `<th colspan="2" class="bg-primary text-white">${c}</th>`; h2 += `<th class="small">15</th><th class="small">30</th>`; });
         head.innerHTML = h1 + '<th class="bg-dark text-white">Total</th></tr>' + h2 + '<td></td></tr>';
 
         const body = document.getElementById('tableBody'); body.innerHTML = '';
         let totalSavings = 0;
         appData.members.forEach((m, mIdx) => {
             let mSum = Number(m.carryOver || 0);
-            let cells = `<td class="text-start fw-bold">${m.name}<br><small class="text-success" style="font-size:0.6rem">₱${mSum.toFixed(0)}</small></td>`;
+            let cells = `<td class="text-start fw-bold">${m.name}</td>`;
             m.payments.forEach((p, pIdx) => { if(p) mSum += Number(appData.settings.contri); cells += `<td><input type="checkbox" class="form-check-input" ${p?'checked':''} onclick="togglePay(${mIdx},${pIdx})"></td>`; });
             totalSavings += mSum;
             body.innerHTML += `<tr>${cells}<td class="fw-bold text-success">₱${mSum.toLocaleString()}</td></tr>`;
@@ -187,7 +238,7 @@
         const loanList = document.getElementById('loanLedgerList'); loanList.innerHTML = '';
         appData.loans.forEach((l, idx) => {
             activeLoansTotal += Number(l.principal);
-            loanList.innerHTML += `<div class="p-1 border-bottom d-flex justify-content-between align-items-center small">
+            loanList.innerHTML += `<div class="p-2 border-bottom d-flex justify-content-between align-items-center small">
                 <span><b>${l.borrower}</b>: ₱${Number(l.principal).toFixed(0)}</span>
                 <div><button class="btn btn-sm btn-warning py-0" onclick="payPartial(${idx})">P</button>
                 <button class="btn btn-sm btn-success py-0" onclick="collectLoan(${idx})">C</button></div></div>`;
@@ -197,9 +248,6 @@
         document.getElementById('admLoans').innerText = `₱${activeLoansTotal.toLocaleString()}`;
         document.getElementById('admProfit').innerText = `₱${Number(appData.profit).toLocaleString()}`;
         document.getElementById('admPool').innerText = `₱${(totalSavings + Number(appData.profit)).toLocaleString()}`;
-
-        const lSel = document.getElementById('loanMemberSelect'); lSel.innerHTML = '<option value="">Select Member...</option>';
-        appData.members.forEach(m => lSel.innerHTML += `<option value="${m.name}">${m.name}</option>`);
     }
 
     function renderMember(user) {
@@ -210,7 +258,6 @@
             totalGroupSavings += Number(m.carryOver || 0);
             m.payments.forEach(p => { if(p) totalGroupSavings += Number(appData.settings.contri); });
         });
-        
         let mySaved = Number(member.carryOver || 0);
         member.payments.forEach(p => { if(p) mySaved += Number(appData.settings.contri); });
         
@@ -226,64 +273,17 @@
         const myLoan = appData.loans.find(l => l.borrower === member.name);
         document.getElementById('mDashLoan').innerText = myLoan ? `₱${(Number(myLoan.principal) * (1 + appData.settings.interest/100)).toFixed(0)}` : "₱0";
 
-        const reqList = document.getElementById('memberRequestStatus');
-        reqList.innerHTML = (appData.requests || []).filter(r => r.email === user.email).map(r => `
-            <div class="small p-1 border-bottom">₱${r.amt} <span class="badge ${r.status==='approved'?'bg-success':'bg-warning'}">${r.status}</span></div>
-        `).join('') || '<p class="text-muted small">No history.</p>';
-
         const timeline = document.getElementById('paymentTimeline'); timeline.innerHTML = '';
-        if(member.carryOver > 0) timeline.innerHTML += `<div class="p-2 border-bottom bg-light"><b>Carry-over Balance:</b> ₱${Number(member.carryOver).toFixed(0)}</div>`;
+        if(member.carryOver > 0) timeline.innerHTML += `<div class="p-2 border-bottom bg-light small"><b>C/O:</b> ₱${Number(member.carryOver).toFixed(0)}</div>`;
         member.payments.forEach((p, idx) => {
             const cy = appData.cycles[Math.floor(idx/2)]; const cut = idx % 2 === 0 ? "15th" : "30th";
-            timeline.innerHTML += `<div class="p-2 border-bottom d-flex justify-content-between ${p?'':'text-muted'}"><span>${cy} ${cut}</span><span>${p?'Verified':'Pending'}</span></div>`;
-        });
-    }
-
-    function closeFiscalYear() {
-        if(!confirm("DANGER: This will distribute all profit, clear all checkboxes, and start a NEW YEAR. Continue?")) return;
-        
-        let totalGroupSavings = 0;
-        appData.members.forEach(m => {
-            totalGroupSavings += Number(m.carryOver || 0);
-            m.payments.forEach(p => { if(p) totalGroupSavings += Number(appData.settings.contri); });
+            timeline.innerHTML += `<div class="p-2 border-bottom d-flex justify-content-between small"><span>${cy} ${cut}</span><span>${p?'VERIFIED':'PENDING'}</span></div>`;
         });
 
-        const profitToDistribute = Number(appData.profit);
-        
-        appData.members.forEach(m => {
-            let mSaved = Number(m.carryOver || 0);
-            m.payments.forEach(p => { if(p) mSaved += Number(appData.settings.contri); });
-            
-            const myShare = totalGroupSavings > 0 ? (mSaved / totalGroupSavings) * profitToDistribute : 0;
-            
-            // The magic: Profit + Savings becomes the new "Carry Over" for next year
-            m.carryOver = mSaved + myShare;
-            // Clear payment history
-            m.payments = new Array(2).fill(false); // Reset to 2 slots for Jan
-        });
-
-        appData.cycles = ["Jan"];
-        appData.profit = 0;
-        appData.requests = [];
-        addLog(`FISCAL YEAR CLOSED. Distributed ₱${profitToDistribute.toFixed(0)}`);
-        save();
-        alert("Fiscal Year Closed! All profits distributed to member capital.");
-    }
-
-    function requestLoan() {
-        const amt = prompt("Amount?"); const note = prompt("Purpose?");
-        if(amt && !isNaN(amt)) {
-            if(!appData.requests) appData.requests = [];
-            appData.requests.push({ name: appData.members.find(m => m.email === currentUser.email).name, email: currentUser.email, amt: Number(amt), note: note, status: 'pending', at: new Date().toLocaleDateString() });
-            save();
-        }
-    }
-
-    function processRequest(idx, status) {
-        const req = appData.requests[idx];
-        req.status = status;
-        if(status === 'approved') { appData.loans.push({ borrower: req.name, principal: Number(req.amt) }); addLog(`Approved loan ₱${req.amt} for ${req.name}`); }
-        save();
+        const reqList = document.getElementById('memberRequestStatus');
+        reqList.innerHTML = (appData.requests || []).filter(r => r.email === user.email).map(r => `
+            <div class="small p-1 border-bottom">₱${r.amt} - ${r.status.toUpperCase()}</div>
+        `).join('') || '<p class="text-muted small">No history.</p>';
     }
 
     function addLog(act) {
@@ -292,20 +292,26 @@
         if(appData.logs.length > 30) appData.logs.shift();
     }
 
+    function updateSettings() {
+        appData.settings.contri = Number(document.getElementById('setConfigAmount').value);
+        appData.settings.interest = Number(document.getElementById('setConfigInterest').value);
+        addLog(`Updated Settings: ₱${appData.settings.contri} / ${appData.settings.interest}%`);
+        save(); alert("Cloud Updated.");
+    }
+
     function togglePay(mIdx, pIdx) { 
-        const status = !appData.members[mIdx].payments[pIdx];
-        appData.members[mIdx].payments[pIdx] = status;
-        addLog(`${status?'Verified':'Unverified'} ${appData.members[mIdx].name}`);
+        appData.members[mIdx].payments[pIdx] = !appData.members[mIdx].payments[pIdx];
+        addLog(`Pay Toggle: ${appData.members[mIdx].name}`);
         save(); 
     }
 
     function payPartial(idx) {
-        const pVal = prompt("Amount paid?");
+        const pVal = prompt("Enter partial payment amount:");
         if(pVal && !isNaN(pVal)) {
             const interest = Number(pVal) * (appData.settings.interest/100);
             appData.profit = Number(appData.profit) + interest;
             appData.loans[idx].principal -= Number(pVal);
-            addLog(`Partial pay ₱${pVal} - ${appData.loans[idx].borrower}`);
+            addLog(`Partial: ₱${pVal} from ${appData.loans[idx].borrower}`);
             if(appData.loans[idx].principal <= 0) appData.loans.splice(idx, 1);
             save();
         }
@@ -314,14 +320,51 @@
     function releaseLoan() {
         const amt = Number(document.getElementById('loanAmtInput').value);
         let name = document.getElementById('loanTypeSelect').value === 'member' ? document.getElementById('loanMemberSelect').value : document.getElementById('nonMemberName').value;
-        if(amt && name) { appData.loans.push({ borrower: name, principal: amt }); addLog(`Released ₱${amt} to ${name}`); save(); document.getElementById('loanAmtInput').value = ''; }
+        if(amt && name) { appData.loans.push({ borrower: name, principal: amt }); addLog(`Loan: ₱${amt} to ${name}`); save(); document.getElementById('loanAmtInput').value = ''; }
     }
 
     function collectLoan(idx) {
         const int = Number(appData.loans[idx].principal) * (appData.settings.interest/100);
         appData.profit = Number(appData.profit) + int;
-        addLog(`Collected loan from ${appData.loans[idx].borrower}`);
+        addLog(`Collected from ${appData.loans[idx].borrower}`);
         appData.loans.splice(idx, 1);
+        save();
+    }
+
+    function deleteMember(idx) { if(confirm(`Delete ${appData.members[idx].name}?`)) { addLog(`Deleted ${appData.members[idx].name}`); appData.members.splice(idx, 1); save(); } }
+    
+    function requestLoan() {
+        const amt = prompt("How much?"); const note = prompt("Purpose?");
+        if(amt && !isNaN(amt)) {
+            if(!appData.requests) appData.requests = [];
+            appData.requests.push({ name: appData.members.find(m => m.email === currentUser.email).name, email: currentUser.email, amt: Number(amt), note: note, status: 'pending' });
+            save();
+        }
+    }
+
+    function processRequest(idx, status) {
+        const req = appData.requests[idx]; req.status = status;
+        if(status === 'approved') { appData.loans.push({ borrower: req.name, principal: Number(req.amt) }); addLog(`Approved loan for ${req.name}`); }
+        save();
+    }
+
+    function closeFiscalYear() {
+        if(!confirm("Close Year? This adds profits to savings and resets ledger.")) return;
+        let totalGroupSavings = 0;
+        appData.members.forEach(m => {
+            totalGroupSavings += Number(m.carryOver || 0);
+            m.payments.forEach(p => { if(p) totalGroupSavings += Number(appData.settings.contri); });
+        });
+        const distProfit = Number(appData.profit);
+        appData.members.forEach(m => {
+            let mSaved = Number(m.carryOver || 0);
+            m.payments.forEach(p => { if(p) mSaved += Number(appData.settings.contri); });
+            const share = totalGroupSavings > 0 ? (mSaved / totalGroupSavings) * distProfit : 0;
+            m.carryOver = mSaved + share;
+            m.payments = new Array(2).fill(false);
+        });
+        appData.cycles = ["Jan"]; appData.profit = 0; appData.requests = [];
+        addLog(`FISCAL YEAR CLOSED.`);
         save();
     }
 
@@ -330,8 +373,8 @@
     function signOut() { auth.signOut().then(() => location.reload()); }
     function showPage(id) { ['loginPage', 'adminDashboard', 'memberDashboard'].forEach(p => document.getElementById(p).style.display = (p === id) ? (p === 'loginPage' ? 'flex' : 'block') : 'none'); }
     function toggleLoanType() { const type = document.getElementById('loanTypeSelect').value; document.getElementById('memberLoanBox').classList.toggle('d-none', type !== 'member'); document.getElementById('nonMemberLoanBox').classList.toggle('d-none', type !== 'non'); }
-    function suggestNextMonth() { const last = appData.cycles[appData.cycles.length - 1]; const next = monthSequence[(monthSequence.indexOf(last) + 1) % 12]; const val = prompt("Cycle:", next); if(val) { appData.cycles.push(val); appData.members.forEach(m => { while(m.payments.length < appData.cycles.length * 2) m.payments.push(false); }); addLog(`Added ${val}`); save(); } }
-    async function secureSystemWipe() { if(btoa(prompt("PIN:")) === OB_WIPE && confirm("WIPE?")) { const fresh = { settings: { contri: 100, interest: 5 }, members: [], cycles: ["Jan"], loans: [], profit: 0, logs: [], requests: [] }; await db.collection("system").doc("main").set(fresh); location.reload(); } }
+    function suggestNextMonth() { const last = appData.cycles[appData.cycles.length - 1]; const next = monthSequence[(monthSequence.indexOf(last) + 1) % 12]; const val = prompt("Month:", next); if(val) { appData.cycles.push(val); appData.members.forEach(m => { while(m.payments.length < appData.cycles.length * 2) m.payments.push(false); }); save(); } }
+    async function secureSystemWipe() { if(btoa(prompt("PIN:")) === OB_WIPE && confirm("WIPE ALL?")) { const fresh = { settings: { contri: 100, interest: 5 }, members: [], cycles: ["Jan"], loans: [], profit: 0, logs: [], requests: [] }; await db.collection("system").doc("main").set(fresh); location.reload(); } }
     function addMember() { const n = prompt("Name:"); const e = prompt("Email:"); if(n && e) { appData.members.push({ name: n, email: e.trim().toLowerCase(), payments: new Array(appData.cycles.length*2).fill(false), carryOver: 0 }); save(); } }
 </script>
 </body>
