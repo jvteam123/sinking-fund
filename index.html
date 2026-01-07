@@ -14,7 +14,6 @@
         :root { --primary: #0d6efd; --accent: #ff7e14; --bg: #f8fafc; --sidebar: #ffffff; }
         body { background-color: var(--bg); color: #1e293b; font-family: 'Inter', 'Segoe UI', sans-serif; }
         
-        /* Smooth Sync Loader */
         #loaderOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255, 255, 255, 0.85);
@@ -24,7 +23,6 @@
         .spinner { width: 45px; height: 45px; border: 5px solid #f3f3f3; border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Login Styling */
         #loginPage { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f1f5f9; }
         .login-card { width: 400px; background: white; padding: 3rem 2rem; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.05); text-align: center; border-bottom: 5px solid var(--accent); }
         .btn-login { background-color: var(--accent); color: white; border: none; border-radius: 12px; padding: 0.8rem 2rem; font-weight: 700; width: 100%; transition: 0.3s; }
@@ -42,7 +40,6 @@
         .ledger-wrapper { overflow: auto; max-height: 500px; border-radius: 12px; border: 1px solid #f1f5f9; }
         .table thead th { background: #f8fafc; font-size: 0.7rem; color: #475569; border-bottom: 2px solid #f1f5f9; }
         
-        /* Loan Portfolio Styles */
         .loan-item { padding: 1.2rem; border: 1px solid #f1f5f9; border-radius: 12px; margin-bottom: 0.75rem; background: #fff; }
         .loan-penalty { color: #dc2626; font-size: 0.65rem; font-weight: 800; animation: blinker 1.5s linear infinite; }
         @keyframes blinker { 50% { opacity: 0; } }
@@ -54,7 +51,7 @@
 </head>
 <body>
 
-<div id="loaderOverlay"><div class="text-center"><div class="spinner mb-2 mx-auto"></div><div class="small fw-bold text-muted">SAVING DATA...</div></div></div>
+<div id="loaderOverlay"><div class="text-center"><div class="spinner mb-2 mx-auto"></div><div class="small fw-bold text-muted">SYNCHRONIZING...</div></div></div>
 
 <nav id="topNav" class="navbar sticky-top" style="display:none">
     <div class="container-fluid d-flex justify-content-between align-items-center">
@@ -169,7 +166,8 @@
         appId: "1:943953104162:web:872f8dbc6f3fac7c63a97b"
     };
     const ADMINS = ["ev.lorens.ebrado@gmail.com", "ev.anderson4470@gmail.com"];
-    const WIPE_PIN = "MjQ4NjE3"; // Base64 of 248617
+    const WIPE_PIN = "MjQ4NjE3"; 
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
@@ -202,6 +200,14 @@
         }
     });
 
+    function autoAddNextMonth() {
+        const last = appData.cycles[appData.cycles.length - 1];
+        const next = monthNames[(monthNames.indexOf(last) + 1) % 12];
+        appData.cycles.push(next);
+        appData.members.forEach(m => m.payments.push(false, false));
+        sync(`Added new cycle: ${next}`);
+    }
+
     function renderAdmin() {
         document.getElementById('setConfigAmount').value = appData.settings.contri;
         document.getElementById('setConfigInterest').value = appData.settings.interest;
@@ -217,25 +223,18 @@
             const issueDate = new Date(l.date);
             const dueDate = new Date(issueDate); dueDate.setDate(dueDate.getDate() + 30);
             const overdue = new Date() > dueDate;
-            
             let total = l.principal * (1 + (appData.settings.interest/100));
             if(overdue) total += (l.principal * (appData.settings.penalty/100));
             actL += total;
 
             loanHtml += `<div class="loan-item border-start border-4 ${overdue?'border-danger':'border-primary'}">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="fw-bold text-dark">${l.borrower}</div>
-                        <div class="h5 text-danger mb-1">₱${total.toLocaleString()}</div>
-                        <small class="text-muted d-block">Due: ${dueDate.toLocaleDateString()}</small>
-                        <small class="text-muted d-block">Interest: ${appData.settings.interest}%</small>
-                    </div>
+                <div class="d-flex justify-content-between">
+                    <div><div class="fw-bold">${l.borrower}</div><div class="h5 text-danger mb-0">₱${total.toLocaleString()}</div>
+                    <small class="text-muted">Due: ${dueDate.toLocaleDateString()}</small></div>
                     ${overdue ? '<div class="loan-penalty">OVERDUE +5%</div>' : ''}
                 </div>
-                <div class="d-flex gap-2 mt-2">
-                    <button class="btn btn-sm btn-outline-primary btn-action" onclick="partialSettle(${i})">PARTIAL</button>
-                    <button class="btn btn-sm btn-success btn-action" onclick="fullSettle(${i}, ${total})">SETTLE</button>
-                </div>
+                <div class="mt-2"><button class="btn btn-outline-primary btn-action me-1" onclick="partialSettle(${i})">PARTIAL</button>
+                <button class="btn btn-success btn-action" onclick="fullSettle(${i}, ${total})">SETTLE</button></div>
             </div>`;
         });
 
@@ -243,8 +242,8 @@
         document.getElementById('admLoans').innerText = `₱${actL.toLocaleString()}`;
         document.getElementById('admProfit').innerText = `₱${appData.profit.toLocaleString()}`;
         document.getElementById('admPool').innerText = `₱${(totalS + appData.profit).toLocaleString()}`;
-        document.getElementById('loanLedgerList').innerHTML = loanHtml || '<div class="text-center p-3 text-muted small">No active loans.</div>';
-        document.getElementById('auditLogList').innerHTML = (appData.logs || []).slice(0,15).map(l => `<div class="log-entry"><b>${l.time}</b>: ${l.act}</div>`).join('');
+        document.getElementById('loanLedgerList').innerHTML = loanHtml || '<div class="text-center p-3 text-muted">No loans.</div>';
+        document.getElementById('auditLogList').innerHTML = (appData.logs || []).slice(0,10).map(l => `<div class="log-entry"><b>${l.time}</b>: ${l.act}</div>`).join('');
 
         let head = '<tr><th class="ps-3 text-start">ACCOUNT</th>';
         appData.cycles.forEach(c => head += `<th colspan="2" class="border-start">${c}</th>`);
@@ -263,27 +262,24 @@
     async function toggleP(mi, pi) {
         const checkbox = document.getElementById(`check_${mi}_${pi}`);
         const m = appData.members[mi];
-        if(confirm(`Process payment for ${m.name}?`)) {
+        if(confirm(`Confirm payment for ${m.name}?`)) {
             m.payments[pi] = checkbox.checked;
-            await sync(`Updated payment: ${m.name}`);
-        } else {
-            checkbox.checked = !checkbox.checked; // Revert UI if cancelled
-        }
+            await sync(`Payment updated: ${m.name}`);
+        } else { checkbox.checked = !checkbox.checked; }
     }
 
     async function partialSettle(i) {
-        const amt = Number(prompt(`Enter partial amount for ${appData.loans[i].borrower}:`));
+        const amt = Number(prompt(`Partial payment for ${appData.loans[i].borrower}:`));
         if(amt > 0 && amt <= appData.loans[i].principal) {
-            const interest = (amt * (appData.settings.interest/100));
-            appData.profit += interest;
+            appData.profit += (amt * (appData.settings.interest/100));
             appData.loans[i].principal -= amt;
             if(appData.loans[i].principal <= 0) appData.loans.splice(i, 1);
-            await sync(`Partial payment: ${amt}`);
+            await sync("Partial loan payment");
         }
     }
 
     async function fullSettle(i, total) {
-        if(confirm("Settle this loan in full?")) {
+        if(confirm("Confirm full settlement?")) {
             appData.profit += (total - appData.loans[i].principal);
             appData.loans.splice(i, 1);
             await sync("Full loan settlement");
@@ -295,7 +291,7 @@
         const a = Number(document.getElementById('loanAmtInput').value);
         if(n && a > 0) {
             appData.loans.push({ borrower: n, principal: a, date: new Date().toISOString() });
-            await sync(`Issued loan: ₱${a} to ${n}`);
+            await sync(`Issued loan: ₱${a}`);
         }
     }
 
@@ -312,14 +308,14 @@
     async function updateSettings() {
         appData.settings.contri = Number(document.getElementById('setConfigAmount').value);
         appData.settings.interest = Number(document.getElementById('setConfigInterest').value);
-        await sync("System Settings Updated");
+        await sync("Settings Updated");
     }
 
     async function secureSystemWipe() {
-        if (btoa(prompt("ENTER SECURITY PIN:")) === WIPE_PIN) {
-            if(confirm("IRREVERSIBLE: Wipe all data?")) {
+        if (btoa(prompt("PIN:")) === WIPE_PIN) {
+            if(confirm("Wipe system?")) {
                 appData = { settings: { contri: 100, interest: 5, penalty: 5 }, members: [], cycles: ["Jan"], loans: [], profit: 0, logs: [] };
-                await sync("FULL SYSTEM RESET");
+                await sync("RESET");
                 location.reload();
             }
         }
@@ -330,24 +326,18 @@
         if(!m) return;
         document.getElementById('mDashName').innerText = m.name;
         document.getElementById('mDashSlots').innerText = `${m.slots||1} Slot(s)`;
-        
         let myS = 0; m.payments.forEach(p => { if(p) myS += appData.settings.contri * (m.slots||1); });
-        const myL = appData.loans.find(l => l.borrower === m.name);
-        
         document.getElementById('mDashContri').innerText = `₱${myS.toLocaleString()}`;
-        document.getElementById('mDashLoan').innerText = myL ? `₱${(myL.principal * (1+appData.settings.interest/100)).toLocaleString()}` : "₱0";
     }
 
     function openMemberManager() {
-        let h = '<div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th class="ps-4">MEMBER</th><th>SLOTS</th><th class="text-end pe-4">ACTION</th></tr></thead><tbody>';
-        appData.members.forEach((m, i) => {
-            h += `<tr><td class="ps-4"><b>${m.name}</b><br><small>${m.email}</small></td><td>${m.slots||1}</td><td class="text-end pe-4"><button class="btn btn-sm btn-outline-danger" onclick="deleteM(${i})"><i class="fas fa-trash"></i></button></td></tr>`;
-        });
+        let h = '<div class="table-responsive"><table class="table table-hover align-middle mb-0"><tbody>';
+        appData.members.forEach((m, i) => h += `<tr><td class="ps-4"><b>${m.name}</b></td><td>${m.slots||1}S</td><td class="text-end pe-4"><button class="btn btn-sm btn-outline-danger" onclick="deleteM(${i})">Delete</button></td></tr>`);
         document.getElementById('memberManagerList').innerHTML = h + '</tbody></table></div>';
         new bootstrap.Modal(document.getElementById('memberManagerModal')).show();
     }
 
-    async function deleteM(i) { if(confirm("Delete record?")) { appData.members.splice(i, 1); await sync("Member deleted"); } }
+    async function deleteM(i) { if(confirm("Delete?")) { appData.members.splice(i, 1); await sync("Member deleted"); } }
     function signIn() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function signOut() { auth.signOut().then(() => location.reload()); }
 </script>
