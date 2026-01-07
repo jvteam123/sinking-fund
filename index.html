@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PH Sinking Fund Cloud v10.8</title>
+    <title>PH Sinking Fund Cloud v10.9</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -11,40 +11,42 @@
     <style>
         :root { --primary-blue: #003366; --danger-red: #dc3545; --success-green: #198754; }
         body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
-        .navbar { background-color: var(--primary-blue); border-bottom: 3px solid #ffc107; }
         #loginPage, #adminDashboard, #memberDashboard, #loadingScreen { display: none; }
+        .navbar { background-color: var(--primary-blue); border-bottom: 3px solid #ffc107; }
         .card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
         .history-item { border-left: 5px solid var(--success-green); margin-bottom: 12px; padding: 12px; background: white; border-radius: 8px; }
         .history-item.unpaid { border-left-color: #dee2e6; color: #adb5bd; }
         .transparency-card { background: linear-gradient(135deg, #003366 0%, #00509d 100%); color: white; }
-        #debugStatus { position: fixed; bottom: 0; width: 100%; background: #333; color: #0f0; font-size: 10px; padding: 5px; z-index: 10000; font-family: monospace; }
     </style>
 </head>
 <body>
 
-<div id="debugStatus">System Status: Initializing...</div>
-
-<div id="loadingScreen" class="position-fixed w-100 h-100 bg-white d-flex flex-column align-items-center justify-content-center" style="z-index: 9999; top:0; left:0;">
+<div id="loadingScreen" class="position-fixed w-100 h-100 bg-white d-flex flex-column align-items-center justify-content-center" style="z-index: 9999; top:0; left:0; display: flex;">
     <div class="spinner-border text-primary mb-3"></div>
     <h5 class="fw-bold text-primary">SF CLOUD SYSTEM</h5>
-    <p id="loadStatus" class="text-muted small">Connecting to Cloud Database...</p>
+    <p id="loadStatus" class="text-muted small">Initializing connection...</p>
 </div>
 
 <div id="loginPage" class="container py-5 mt-5 text-center">
     <div class="card p-5 shadow-lg d-inline-block" style="max-width: 450px;">
         <h2 class="fw-bold text-primary">System Login</h2>
         <p class="text-muted mb-4">Official Sinking Fund Management</p>
-        <button class="btn btn-outline-dark w-100 py-3 d-flex align-items-center justify-content-center fw-bold" onclick="signIn()">
+        
+        <button class="btn btn-outline-dark w-100 py-3 d-flex align-items-center justify-content-center fw-bold mb-3" onclick="signIn()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="22" class="me-3">
             Sign in with Google
         </button>
-        <div class="mt-3 small text-muted">Authorized Personnel Only</div>
+
+        <div class="border-top pt-3 mt-3">
+            <p class="small text-muted">If Google is blocked by your browser:</p>
+            <button class="btn btn-sm btn-link text-decoration-none" onclick="manualEntry()">Manual Admin Entry (PIN Required)</button>
+        </div>
     </div>
 </div>
 
 <nav id="topNav" class="navbar navbar-dark mb-4 d-none sticky-top">
     <div class="container d-flex justify-content-between align-items-center">
-        <span class="navbar-brand fw-bold">🇵🇭 SF PRO v10.8</span>
+        <span class="navbar-brand fw-bold">🇵🇭 SF PRO v10.9</span>
         <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="signOut()">Logout</button>
     </div>
 </nav>
@@ -64,8 +66,6 @@
                 <select id="newMonthSelect" class="form-select form-select-sm" style="width: 100px;">
                     <option value="Jan">Jan</option><option value="Feb">Feb</option><option value="Mar">Mar</option>
                     <option value="Apr">Apr</option><option value="May">May</option><option value="Jun">Jun</option>
-                    <option value="Jul">Jul</option><option value="Aug">Aug</option><option value="Sep">Sep</option>
-                    <option value="Oct">Oct</option><option value="Nov">Nov</option><option value="Dec">Dec</option>
                 </select>
                 <button class="btn btn-sm btn-success" onclick="addNewMonth()">+ Month</button>
             </div>
@@ -75,32 +75,21 @@
 
     <div class="row g-4">
         <div class="col-md-6">
-            <div class="card p-4 border-top border-danger border-5 h-100">
+            <div class="card p-4 border-top border-danger border-5">
                 <h5 class="fw-bold text-danger">Loan Management</h5>
-                <select id="loanType" class="form-select mb-2" onchange="toggleLoanInputs()">
-                    <option value="member">To Member</option><option value="non">To External</option>
-                </select>
-                <div id="memberInputs"><select id="loanMemberSelect" class="form-select mb-2"></select></div>
-                <div id="nonInputs" class="d-none">
-                    <input type="text" id="nonName" class="form-control mb-2" placeholder="Borrower Name">
-                    <input type="text" id="nonContact" class="form-control mb-2" placeholder="Contact/Note">
-                </div>
+                <select id="loanMemberSelect" class="form-select mb-2"></select>
                 <input type="number" id="loanAmtInput" class="form-control mb-3" placeholder="Amount (₱)">
                 <button class="btn btn-danger w-100 fw-bold" onclick="releaseLoan()">APPROVE LOAN</button>
                 <hr>
-                <h6>Active Loans</h6>
                 <div id="loanLedgerList"></div>
             </div>
         </div>
         <div class="col-md-6">
-            <div class="card p-4 border-top border-dark border-5 h-100">
-                <h5>Global Settings</h5>
-                <label class="small fw-bold">Contribution/Cutoff</label>
+            <div class="card p-4 border-top border-dark border-5">
+                <h5>Cloud Settings</h5>
+                <label class="small fw-bold">Contribution Amount</label>
                 <input type="number" id="setConfigAmount" class="form-control mb-2">
-                <label class="small fw-bold">Interest Rate (%)</label>
-                <input type="number" id="setConfigInterest" class="form-control mb-3">
-                <button class="btn btn-dark w-100 mb-2" onclick="updateSettings()">Update Cloud</button>
-                <button class="btn btn-outline-danger btn-sm w-100 mt-5" onclick="resetSystem()">RESET DATABASE</button>
+                <button class="btn btn-dark w-100" onclick="updateSettings()">Apply to Cloud</button>
             </div>
         </div>
     </div>
@@ -110,18 +99,13 @@
     <div class="row g-4 justify-content-center">
         <div class="col-lg-5">
             <div class="card p-4 transparency-card border-0 shadow mb-4 text-center">
-                <img id="userPhoto" class="rounded-circle mx-auto mb-3 border border-3 border-white shadow" width="85">
+                <img id="userPhoto" class="rounded-circle mx-auto mb-3 border border-3 border-white shadow d-none" width="85">
                 <h2 id="mDashName" class="fw-bold mb-1"></h2>
                 <hr class="bg-white">
                 <div class="row">
                     <div class="col-6"><small>Total Savings</small><h4 id="mDashContri">₱0</h4></div>
                     <div class="col-6"><small>Active Loan</small><h4 id="mDashLoan" class="text-warning">₱0</h4></div>
                 </div>
-            </div>
-            <div class="card p-3 shadow-sm border-start border-primary border-5">
-                <h6 class="fw-bold text-primary">Transparency Info</h6>
-                <div class="d-flex justify-content-between small border-bottom py-2"><span>Group Profit:</span><span id="mGroupProfit" class="text-success fw-bold">₱0</span></div>
-                <div class="d-flex justify-content-between small py-2"><span>Group Active Loans:</span><span id="mGroupLoans" class="text-danger fw-bold">₱0</span></div>
             </div>
         </div>
         <div class="col-lg-7">
@@ -131,8 +115,6 @@
 </div>
 
 <script>
-    const log = (msg) => document.getElementById('debugStatus').innerText = "LOG: " + msg;
-
     const firebaseConfig = {
         apiKey: "AIzaSyC5nSdDA5IrA0Gpt_nUcpT2NI0kdGGU3wI",
         authDomain: "sinking-fund-51fcd.firebaseapp.com",
@@ -142,60 +124,62 @@
         appId: "1:943953104162:web:872f8dbc6f3fac7c63a97b"
     };
 
-    const ADMIN_EMAIL = "ev.lorens.ebrado@gmail.com";
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-
+    const ADMIN_EMAIL = "ev.lorens.ebrado@gmail.com";
+    
     let appData = { settings: { contri: 100, interest: 5 }, members: [], cycles: ["Jan"], loans: [], profit: 0 };
 
     auth.onAuthStateChanged(user => {
         if (user) {
-            log("User logged in as " + user.email);
-            document.getElementById('loadingScreen').style.display = 'flex';
-            db.collection("system").doc("main").onSnapshot(doc => {
-                if (doc.exists) appData = doc.data();
-                else db.collection("system").doc("main").set(appData);
-                
-                document.getElementById('loadingScreen').style.display = 'none';
-                document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('topNav').classList.remove('d-none');
-
-                if (user.email === ADMIN_EMAIL) {
-                    showPage('adminDashboard');
-                    renderAdmin();
-                } else {
-                    showPage('memberDashboard');
-                    renderMember(user);
-                }
-            }, err => log("Firestore Error: " + err.code));
+            setupSystem(user);
         } else {
-            log("No active session. Showing login.");
-            document.getElementById('loadingScreen').style.display = 'none';
+            hideLoader();
             showPage('loginPage');
         }
     });
 
-    function showPage(id) {
-        ['loginPage', 'adminDashboard', 'memberDashboard'].forEach(p => document.getElementById(p).style.display = 'none');
-        document.getElementById(id).style.display = 'block';
+    function setupSystem(user) {
+        db.collection("system").doc("main").onSnapshot(doc => {
+            if (doc.exists) appData = doc.data();
+            else db.collection("system").doc("main").set(appData);
+            
+            hideLoader();
+            document.getElementById('topNav').classList.remove('d-none');
+            
+            if (user.email === ADMIN_EMAIL || user.isAdmin) {
+                showPage('adminDashboard');
+                renderAdmin();
+            } else {
+                showPage('memberDashboard');
+                renderMember(user);
+            }
+        }, err => {
+            alert("Firestore Blocked. Please check browser privacy settings.");
+        });
     }
 
     function signIn() { 
-        log("Attempting Google Sign-in...");
         const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).catch(err => {
-            log("Auth Error: " + err.message);
-            alert("Google Login Blocked. Check 'Authorized Domains' in Firebase.");
-        });
+        auth.signInWithPopup(provider).catch(e => alert("Google Blocked: " + e.message));
     }
-    
-    function signOut() { auth.signOut().then(() => location.reload()); }
 
-    // --- RENDER FUNCTIONS ---
+    function manualEntry() {
+        const pin = prompt("Enter Admin PIN:");
+        if(pin === "1234") setupSystem({ email: ADMIN_EMAIL, displayName: "Admin", isAdmin: true });
+    }
+
+    function signOut() { auth.signOut().then(() => location.reload()); }
+    function showPage(id) { 
+        ['loginPage', 'adminDashboard', 'memberDashboard'].forEach(p => document.getElementById(p).style.display = 'none');
+        document.getElementById(id).style.display = 'block'; 
+    }
+    function hideLoader() { document.getElementById('loadingScreen').style.display = 'none'; }
+
+    // --- SHARED LOGIC FROM TRANSPARENCY PRO ---
     function renderAdmin() {
         document.getElementById('setConfigAmount').value = appData.settings.contri;
-        document.getElementById('setConfigInterest').value = appData.settings.interest;
         const head = document.getElementById('tableHead');
         let h1 = '<tr><th>Member</th>'; let h2 = '<tr><td></td>';
         appData.cycles.forEach(c => { h1 += `<th colspan="2" class="text-center">${c}</th>`; h2 += `<th class="text-center small py-1">15th</th><th class="text-center small py-1">30th</th>`; });
@@ -222,8 +206,7 @@
         let loanVal = 0;
         appData.loans.forEach((l, idx) => {
             loanVal += l.principal;
-            const due = l.principal * (1 + (appData.settings.interest/100));
-            list.innerHTML += `<div class="p-2 border-bottom d-flex justify-content-between align-items-center mb-2 bg-light rounded"><span>${l.borrower} (₱${due.toLocaleString()})</span><button class="btn btn-sm btn-success py-0" onclick="collectLoan(${idx})">Collect</button></div>`;
+            list.innerHTML += `<div class="p-2 border-bottom d-flex justify-content-between align-items-center mb-2 bg-light rounded"><span>${l.borrower} (₱${l.principal})</span><button class="btn btn-sm btn-success py-0" onclick="collectLoan(${idx})">Collect</button></div>`;
         });
 
         document.getElementById('admTotalColl').innerText = `₱${(totalColl + appData.profit).toLocaleString()}`;
@@ -233,9 +216,9 @@
 
     function renderMember(user) {
         const member = appData.members.find(m => m.name === user.displayName);
-        document.getElementById('userPhoto').src = user.photoURL;
         document.getElementById('mDashName').innerText = user.displayName;
-        if(!member) return document.getElementById('paymentTimeline').innerHTML = `<div class='alert alert-info'>Ask Admin to add you as "${user.displayName}"</div>`;
+        if(user.photoURL) { document.getElementById('userPhoto').src = user.photoURL; document.getElementById('userPhoto').classList.remove('d-none'); }
+        if(!member) return document.getElementById('paymentTimeline').innerHTML = `<div class='alert alert-info'>Waiting for Admin to add "${user.displayName}"</div>`;
         let saved = 0; const timeline = document.getElementById('paymentTimeline'); timeline.innerHTML = '';
         member.payments.forEach((p, idx) => {
             const cy = appData.cycles[Math.floor(idx/2)];
@@ -244,26 +227,17 @@
             timeline.innerHTML += `<div class="history-item ${p?'':'unpaid'} d-flex justify-content-between"><span>${cy} ${cut}</span><b>${p ? '₱'+appData.settings.contri : 'UNPAID'}</b></div>`;
         });
         document.getElementById('mDashContri').innerText = `₱${saved.toLocaleString()}`;
-        const loan = appData.loans.find(l => l.borrower === user.displayName);
-        document.getElementById('mDashLoan').innerText = loan ? `₱${(loan.principal * (1+appData.settings.interest/100)).toLocaleString()}` : "₱0";
-        document.getElementById('mGroupProfit').innerText = `₱${appData.profit.toLocaleString()}`;
-        let totalActiveLoans = 0; appData.loans.forEach(l => totalActiveLoans += l.principal);
-        document.getElementById('mGroupLoans').innerText = `₱${totalActiveLoans.toLocaleString()}`;
     }
 
-    // --- ACTIONS ---
     function togglePay(mIdx, pIdx) { appData.members[mIdx].payments[pIdx] = !appData.members[mIdx].payments[pIdx]; save(); }
     function collectLoan(idx) { appData.profit += (appData.loans[idx].principal * (appData.settings.interest/100)); appData.loans.splice(idx, 1); save(); }
     function releaseLoan() {
         const amt = parseFloat(document.getElementById('loanAmtInput').value);
-        let b = document.getElementById('loanType').value === 'member' ? document.getElementById('loanMemberSelect').value : document.getElementById('nonName').value;
-        if(amt) { appData.loans.push({borrower: b, principal: amt}); save(); document.getElementById('loanAmtInput').value = ''; }
+        let b = document.getElementById('loanMemberSelect').value;
+        if(amt && b) { appData.loans.push({borrower: b, principal: amt}); save(); document.getElementById('loanAmtInput').value = ''; }
     }
-    function addMember() { const n = prompt("Exact Google Name:"); if(n) { appData.members.push({name: n, payments: new Array(appData.cycles.length*2).fill(false)}); save(); } }
+    function addMember() { const n = prompt("Google Name:"); if(n) { appData.members.push({name: n, payments: new Array(appData.cycles.length*2).fill(false)}); save(); } }
     function addNewMonth() { const m = document.getElementById('newMonthSelect').value; if(!appData.cycles.includes(m)) { appData.cycles.push(m); appData.members.forEach(m => m.payments.push(false, false)); save(); } }
-    function updateSettings() { appData.settings.contri = parseFloat(document.getElementById('setConfigAmount').value); appData.settings.interest = parseFloat(document.getElementById('setConfigInterest').value); save(); alert("Synced"); }
-    function resetSystem() { if(confirm("Wipe Cloud?")) { db.collection("system").doc("main").delete().then(()=>location.reload()); } }
-    function toggleLoanInputs() { document.getElementById('memberInputs').classList.toggle('d-none', document.getElementById('loanType').value !== 'member'); document.getElementById('nonInputs').classList.toggle('d-none', document.getElementById('loanType').value !== 'non'); }
     function save() { db.collection("system").doc("main").set(appData); }
 </script>
 </body>
