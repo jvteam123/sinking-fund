@@ -88,8 +88,8 @@
     <div class="login-card">
         <div class="mb-4 text-center">
             <i class="fas fa-shield-halved fa-3x mb-3" style="color:var(--accent)"></i>
-            <h4 class="fw-bold mb-0">MSF</h4>
-            <p class="text-muted small">Micro Sinking Fund</p>
+            <h4 class="fw-bold mb-0">Financial Gateway</h4>
+            <p class="text-muted small">Secure Member Access</p>
         </div>
         <button class="btn-login" onclick="signIn()"><i class="fab fa-google me-2"></i> Authenticate Account</button>
     </div>
@@ -100,7 +100,7 @@
         <div class="col-md-3"><div class="stat-card bg-cash"><h6>Cash On Hand</h6><h3 class="fw-bold" id="admCash">₱0</h3></div></div>
         <div class="col-md-3"><div class="stat-card bg-loans"><h6>Active Receivables</h6><h3 class="fw-bold" id="admLoans">₱0</h3></div></div>
         <div class="col-md-3"><div class="stat-card bg-profit"><h6>Loan Earnings</h6><h3 class="fw-bold" id="admProfit">₱0</h3></div></div>
-        <div class="col-md-3"><div class="stat-card bg-pool"><h6>Total Asset Value</h6><h3 class="fw-bold" id="admPool">₱0</h3></div></div>
+        <div class="col-md-3"><div class="stat-card bg-pool"><h6>Asset Valuation</h6><h3 class="fw-bold" id="admPool">₱0</h3></div></div>
     </div>
 
     <div class="row g-4">
@@ -165,8 +165,11 @@
                     <div class="col-6"><label class="small text-muted fw-bold">INTEREST RATE %</label><input type="number" id="setConfigInterest" class="form-control"></div>
                 </div>
                 <button class="btn btn-dark w-100 mb-3 py-2 fw-bold" onclick="updateSettings()">SAVE SETTINGS</button>
+                <div class="d-grid gap-2 mb-2">
+                    <button class="btn btn-sm btn-success fw-bold" onclick="exportFullSpreadsheet()"><i class="fas fa-file-excel me-2"></i>EXPORT SPREADSHEET</button>
+                </div>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-light border w-50" onclick="exportBackup()">JSON EXPORT</button>
+                    <button class="btn btn-sm btn-light border w-50" onclick="exportBackup()">JSON BACKUP</button>
                     <label class="btn btn-sm btn-light border w-50 m-0 text-center">IMPORT<input type="file" id="importFile" hidden onchange="importBackup()"></label>
                 </div>
                 <button class="btn btn-link btn-sm text-danger w-100 mt-2 text-decoration-none fw-bold" onclick="secureSystemWipe()">SYSTEM HARD RESET</button>
@@ -249,7 +252,6 @@
         setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
     }
 
-    // Fixed Calculation Centralization
     function calculateSystemCash() {
         let totalPrincipalPaid = 0;
         appData.members.forEach(m => {
@@ -271,9 +273,10 @@
         appData.logs.unshift({
             time: `${now.toLocaleDateString()}, ${now.toLocaleTimeString()}`,
             admin: auth.currentUser ? auth.currentUser.displayName : 'System',
+            balance: `₱${calculateSystemCash().toLocaleString()}`,
             act: act
         });
-        if(appData.logs.length > 50) appData.logs.pop(); // Cap logs for Firestore size
+        if(appData.logs.length > 50) appData.logs.pop();
     }
 
     auth.onAuthStateChanged(user => {
@@ -325,7 +328,7 @@
                     columnTotals[pi] += amt;
                 }
                 if(!appData.hiddenMonths.includes(cy)) {
-                    cells += `<td class="${pi%2===0?'border-start':''}"><input type="checkbox" ${p?'checked':''} onclick="confirmPayment('${m.email}',${pi})"></td>`;
+                    cells += `<td class="${pi%2===0?'border-start':''}"><input type="checkbox" ${p?'checked':''} onclick="confirmPayment(${mi},${pi})"></td>`;
                 }
             });
             systemTotalPrincipal += mSum;
@@ -342,13 +345,10 @@
         document.getElementById('tableFoot').innerHTML = foot + `<td class="border-start">₱${systemTotalPrincipal.toLocaleString()}</td></tr>`;
 
         let activeLoanPrincipal = appData.loans.reduce((acc, l) => acc + Number(l.principal), 0);
-        let activeLoanInterest = appData.loans.reduce((acc, l) => acc + (Number(l.principal) * (appData.settings.interest/100)), 0);
-        
         document.getElementById('admCash').innerText = `₱${(systemTotalPrincipal + appData.profit - activeLoanPrincipal).toLocaleString()}`;
         document.getElementById('admLoans').innerText = `₱${activeLoanPrincipal.toLocaleString()}`;
         document.getElementById('admProfit').innerText = `₱${appData.profit.toLocaleString()}`;
-        // Pool includes expected interest for true valuation
-        document.getElementById('admPool').innerText = `₱${(systemTotalPrincipal + appData.profit + activeLoanInterest).toLocaleString()}`;
+        document.getElementById('admPool').innerText = `₱${(systemTotalPrincipal + appData.profit).toLocaleString()}`;
         
         renderPaginatedLoans();
         document.getElementById('auditLogList').innerHTML = (appData.logs || []).map(l => `<div class="log-entry"><div class="log-meta"><span>${l.time}</span><span class="text-primary">${l.admin}</span></div><div>${l.act}</div></div>`).join('');
@@ -428,12 +428,9 @@
             </div>`).join('');
     }
 
-    // Fixed: Email-based lookup to prevent index desync
-    function confirmPayment(email, pi) {
-        const mi = appData.members.findIndex(m => m.email === email);
-        if(mi === -1) return;
+    function confirmPayment(mi, pi) {
         appData.members[mi].payments[pi] = !appData.members[mi].payments[pi];
-        logAction(`Contribution update: ${appData.members[mi].name} - Cycle ${Math.floor(pi/2)}`);
+        logAction(`Contribution update: ${appData.members[mi].name} - ${appData.cycles[Math.floor(pi/2)]}`);
         save();
         notify("Ledger Saved");
     }
@@ -458,15 +455,12 @@
         }
     }
 
-    // Fixed Interest Logic: Interest is realized profit only
     function partial(i) {
         const amt = Number(prompt(`Enter amount paid by ${appData.loans[i].borrower}:`));
         if(amt > 0 && amt <= appData.loans[i].principal) {
-            // Note: In simple sinking funds, interest is often realized upon principal payment
-            const calculatedInterest = (amt * (appData.settings.interest/100));
-            appData.profit += calculatedInterest;
+            appData.profit += (amt * (appData.settings.interest/100));
             appData.loans[i].principal -= amt;
-            logAction(`Amortization: ${appData.loans[i].borrower} paid ₱${amt} (+₱${calculatedInterest} Int)`);
+            logAction(`Amortization: ${appData.loans[i].borrower} paid ₱${amt}`);
             if(appData.loans[i].principal <= 0) appData.loans.splice(i,1);
             save(); notify("Payment received");
         }
@@ -475,9 +469,8 @@
     function full(i) {
         if(confirm(`Confirm full settlement for ${appData.loans[i].borrower}?`)) {
             const name = appData.loans[i].borrower;
-            const interest = (appData.loans[i].principal * (appData.settings.interest/100));
-            appData.profit += interest;
-            logAction(`Loan Cleared: ${name} (Profit: ₱${interest})`);
+            appData.profit += (appData.loans[i].principal * (appData.settings.interest/100));
+            logAction(`Loan Cleared: ${name}`);
             appData.loans.splice(i,1);
             save(); notify(`${name} account cleared`);
         }
@@ -528,32 +521,22 @@
     function openMemberManager() {
         let h = '<div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th class="ps-4">MEMBER</th><th>SLOTS</th><th>STATUS</th><th class="text-end pe-4">ACTIONS</th></tr></thead><tbody>';
         appData.members.forEach((m, i) => {
-            h += `<tr><td class="ps-4"><b>${m.name}</b><br><small class='text-muted'>${m.email}</small></td><td>${m.slots || 1}</td><td><span class="badge ${m.banned?'bg-danger':'bg-success'}">${m.banned?'BANNED':'ACTIVE'}</span></td><td class="text-end pe-4"><button class="btn btn-sm btn-outline-dark" onclick="editCarryOver('${m.email}')"><i class='fas fa-plus'></i></button> <button class="btn btn-sm btn-warning" onclick="banM('${m.email}')"><i class='fas fa-ban'></i></button> <button class="btn btn-sm btn-danger" onclick="deleteM('${m.email}')"><i class='fas fa-trash'></i></button></td></tr>`;
+            h += `<tr><td class="ps-4"><b>${m.name}</b><br><small class='text-muted'>${m.email}</small></td><td>${m.slots || 1}</td><td><span class="badge ${m.banned?'bg-danger':'bg-success'}">${m.banned?'BANNED':'ACTIVE'}</span></td><td class="text-end pe-4"><button class="btn btn-sm btn-outline-dark" onclick="editCarryOver(${i})"><i class='fas fa-plus'></i></button> <button class="btn btn-sm btn-warning" onclick="banM(${i})"><i class='fas fa-ban'></i></button> <button class="btn btn-sm btn-danger" onclick="deleteM(${i})"><i class='fas fa-trash'></i></button></td></tr>`;
         });
         document.getElementById('memberManagerList').innerHTML = h + '</tbody></table></div>';
         new bootstrap.Modal(document.getElementById('memberManagerModal')).show();
     }
 
-    function editCarryOver(email) {
-        const mi = appData.members.findIndex(m => m.email === email);
-        const amt = prompt(`Set Carry-over for ${appData.members[mi].name}:`, appData.members[mi].carryOver);
+    function editCarryOver(i) {
+        const amt = prompt(`Set Carry-over/Initial Balance for ${appData.members[i].name}:`, appData.members[i].carryOver);
         if(amt !== null) {
-            appData.members[mi].carryOver = Number(amt);
+            appData.members[i].carryOver = Number(amt);
             save(); openMemberManager();
         }
     }
     
-    function banM(email) { 
-        const mi = appData.members.findIndex(m => m.email === email);
-        appData.members[mi].banned = !appData.members[mi].banned; 
-        save(); openMemberManager(); 
-    }
-    function deleteM(email) { 
-        if(confirm("Permanently delete member?")) { 
-            appData.members = appData.members.filter(m => m.email !== email);
-            save(); openMemberManager(); 
-        } 
-    }
+    function banM(i) { appData.members[i].banned = !appData.members[i].banned; save(); openMemberManager(); }
+    function deleteM(i) { if(confirm("Permanently delete member?")) { appData.members.splice(i,1); save(); openMemberManager(); } }
 
     function exportBackup() { 
         const blob = new Blob([JSON.stringify(appData)], {type: 'application/json'}); 
@@ -581,6 +564,46 @@
                 location.reload(); 
             } 
         } 
+    }
+
+    function exportFullSpreadsheet() {
+        let csv = "--- MEMBER SUMMARY ---\n";
+        csv += "NAME,EMAIL,SLOTS,CARRY OVER,TOTAL CONTRIBUTION\n";
+        
+        appData.members.forEach(m => {
+            let total = Number(m.carryOver || 0);
+            m.payments.forEach(p => { if(p) total += (appData.settings.contri * m.slots); });
+            csv += `"${m.name}","${m.email}",${m.slots},${m.carryOver},${total}\n`;
+        });
+
+        csv += "\n--- DETAILED CONTRIBUTION LEDGER ---\n";
+        let headerRow = "NAME";
+        appData.cycles.forEach(c => { headerRow += `,"${c} 15th","${c} 30th"`; });
+        csv += headerRow + "\n";
+
+        appData.members.forEach(m => {
+            let row = `"${m.name}"`;
+            m.payments.forEach(p => {
+                const amt = p ? (appData.settings.contri * m.slots) : 0;
+                row += `,${amt}`;
+            });
+            csv += row + "\n";
+        });
+
+        csv += "\n--- AUDIT LOGS ---\n";
+        csv += "TIMESTAMP,ADMIN,ACTION,SYSTEM BALANCE\n";
+        (appData.logs || []).forEach(l => {
+            csv += `"${l.time}","${l.admin}","${l.act.replace(/"/g, '""')}","${l.balance || 'N/A'}"\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", `MSF_Full_Report_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        notify("Spreadsheet Exported");
     }
 </script>
 </body>
