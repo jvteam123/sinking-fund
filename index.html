@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PH Sinking Fund Cloud v10.11</title>
+    <title>PH Sinking Fund Cloud v10.12</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -14,24 +14,21 @@
         #adminDashboard, #memberDashboard, #topNav { display: none; }
         .navbar { background-color: var(--primary-blue); border-bottom: 3px solid #ffc107; }
         .card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-        .history-item { border-left: 5px solid var(--success-green); margin-bottom: 12px; padding: 12px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .history-item { border-left: 5px solid var(--success-green); margin-bottom: 12px; padding: 12px; background: white; border-radius: 8px; }
         .history-item.unpaid { border-left-color: #dee2e6; color: #adb5bd; }
         .transparency-card { background: linear-gradient(135deg, #003366 0%, #00509d 100%); color: white; }
-        .table thead { background-color: #f1f4f8; }
     </style>
 </head>
 <body>
 
 <div id="loginPage" class="container py-5 mt-5 text-center">
     <div class="card p-5 shadow-lg d-inline-block" style="max-width: 450px; width: 100%;">
-        <h1 class="fw-bold text-primary mb-1">SF Cloud</h1>
-        <p class="text-muted mb-4">Official PH Management System</p>
-        
-        <button id="googleBtn" class="btn btn-outline-dark w-100 py-3 d-flex align-items-center justify-content-center fw-bold mb-3" onclick="signIn()">
+        <h2 class="fw-bold text-primary mb-1">SF Cloud</h2>
+        <p class="text-muted mb-4">Secure Authorization System</p>
+        <button class="btn btn-outline-dark w-100 py-3 d-flex align-items-center justify-content-center fw-bold mb-3" onclick="signIn()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="22" class="me-3">
             Sign in with Google
         </button>
-
         <div class="border-top pt-3 mt-3">
             <button class="btn btn-sm btn-link text-decoration-none text-muted" onclick="manualAdmin()">Admin Bypass PIN</button>
         </div>
@@ -40,58 +37,69 @@
 
 <nav id="topNav" class="navbar navbar-dark mb-4 sticky-top">
     <div class="container d-flex justify-content-between align-items-center">
-        <span class="navbar-brand fw-bold">🇵🇭 SF PRO v10.11</span>
+        <span class="navbar-brand fw-bold">🇵🇭 SF PRO v10.12</span>
         <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="signOut()">Logout</button>
     </div>
 </nav>
 
 <div id="adminDashboard" class="container">
     <div class="row mb-4 g-3 text-white text-center">
-        <div class="col-md-4"><div class="card p-3 bg-primary"><h6>Total Collections</h6><h2 id="admTotalColl">₱0</h2></div></div>
+        <div class="col-md-4"><div class="card p-3 bg-primary"><h6>Total Fund</h6><h2 id="admTotalColl">₱0</h2></div></div>
         <div class="col-md-4"><div class="card p-3 bg-danger"><h6>Active Loans</h6><h2 id="admTotalLoans">₱0</h2></div></div>
-        <div class="col-md-4"><div class="card p-3 bg-success"><h6>Profit Earned</h6><h2 id="admProfit">₱0</h2></div></div>
+        <div class="col-md-4"><div class="card p-3 bg-success"><h6>Profit</h6><h2 id="admProfit">₱0</h2></div></div>
     </div>
 
     <div class="card p-4 mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="fw-bold text-primary m-0">Master Ledger</h5>
             <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-primary" onclick="addMember()">+ Member</button>
-                <select id="newMonthSelect" class="form-select form-select-sm" style="width: 100px;">
-                    <option value="Jan">Jan</option><option value="Feb">Feb</option><option value="Mar">Mar</option>
-                    <option value="Apr">Apr</option><option value="May">May</option><option value="Jun">Jun</option>
-                    <option value="Jul">Jul</option><option value="Aug">Aug</option><option value="Sep">Sep</option>
-                    <option value="Oct">Oct</option><option value="Nov">Nov</option><option value="Dec">Dec</option>
-                </select>
-                <button class="btn btn-sm btn-success" onclick="addNewMonth()">+ Month</button>
+                <button class="btn btn-sm btn-primary" onclick="addMember()">+ Add Member</button>
+                <button class="btn btn-sm btn-success" onclick="addNewMonth()">+ Add Month</button>
             </div>
         </div>
-        <div class="table-responsive"><table class="table table-bordered align-middle text-center"><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table></div>
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle text-center small">
+                <thead id="tableHead" class="table-light"></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
     </div>
 
-    <div class="row g-4">
+    <div class="row g-4 mb-5">
         <div class="col-md-6">
             <div class="card p-4 border-top border-danger border-5 h-100">
-                <h5 class="fw-bold text-danger">Loan Management</h5>
-                <label class="small fw-bold mt-2">Borrower Name</label>
-                <select id="loanMemberSelect" class="form-select mb-2"></select>
-                <label class="small fw-bold">Principal Amount</label>
-                <input type="number" id="loanAmtInput" class="form-control mb-3" placeholder="Enter amount (₱)">
-                <button class="btn btn-danger w-100 fw-bold" onclick="releaseLoan()">APPROVE & RELEASE</button>
+                <h5 class="fw-bold text-danger">Loan Center</h5>
+                <select id="loanTypeSelect" class="form-select mb-2" onchange="toggleLoanType()">
+                    <option value="member">Loan to Member</option>
+                    <option value="non">Loan to Non-Member</option>
+                </select>
+                
+                <div id="memberLoanBox">
+                    <select id="loanMemberSelect" class="form-select mb-2"></select>
+                </div>
+                
+                <div id="nonMemberLoanBox" class="d-none">
+                    <input type="text" id="nonMemberName" class="form-control mb-2" placeholder="Borrower Name">
+                    <input type="email" id="nonMemberEmail" class="form-control mb-2" placeholder="Borrower Email/Phone">
+                </div>
+
+                <input type="number" id="loanAmtInput" class="form-control mb-3" placeholder="Principal Amount (₱)">
+                <button class="btn btn-danger w-100 fw-bold" onclick="releaseLoan()">RELEASE FUNDS</button>
                 <hr>
-                <h6 class="fw-bold">Active Loan List</h6>
+                <h6 class="fw-bold">Active Loan Ledger</h6>
                 <div id="loanLedgerList"></div>
             </div>
         </div>
+
         <div class="col-md-6">
             <div class="card p-4 border-top border-dark border-5 h-100">
-                <h5>Cloud Settings</h5>
-                <div class="row g-2">
-                    <div class="col-6"><label class="small fw-bold">Contribution (₱)</label><input type="number" id="setConfigAmount" class="form-control"></div>
-                    <div class="col-6"><label class="small fw-bold">Interest (%)</label><input type="number" id="setConfigInterest" class="form-control"></div>
-                </div>
-                <button class="btn btn-dark w-100 mt-3" onclick="updateSettings()">Apply Changes</button>
-                <button class="btn btn-outline-danger btn-sm w-100 mt-5" onclick="resetSystem()">System Wipe</button>
+                <h5>Cloud Configuration</h5>
+                <label class="small fw-bold mt-2">Contribution Amount (₱)</label>
+                <input type="number" id="setConfigAmount" class="form-control mb-2">
+                <label class="small fw-bold">Interest Rate (%)</label>
+                <input type="number" id="setConfigInterest" class="form-control mb-3">
+                <button class="btn btn-dark w-100" onclick="updateSettings()">Save & Sync</button>
+                <button class="btn btn-outline-danger btn-sm w-100 mt-5" onclick="resetSystem()">Wipe Database</button>
             </div>
         </div>
     </div>
@@ -106,18 +114,18 @@
                 <hr class="bg-white">
                 <div class="row">
                     <div class="col-6"><small>My Savings</small><h4 id="mDashContri" class="fw-bold">₱0</h4></div>
-                    <div class="col-6"><small>Active Debt</small><h4 id="mDashLoan" class="text-warning fw-bold">₱0</h4></div>
+                    <div class="col-6"><small>My Interest</small><h4 id="mDashLoan" class="text-warning fw-bold">₱0</h4></div>
                 </div>
             </div>
-            <div class="card p-3 shadow-sm border-start border-primary border-5">
-                <h6 class="fw-bold text-primary">Transparency Data</h6>
+            <div class="card p-3 shadow-sm">
+                <h6 class="fw-bold text-primary">Global Transparency</h6>
                 <div class="d-flex justify-content-between small border-bottom py-2"><span>Group Profit:</span><span id="mGroupProfit" class="text-success fw-bold">₱0</span></div>
-                <div class="d-flex justify-content-between small py-2"><span>Total Loans Released:</span><span id="mGroupLoans" class="text-danger fw-bold">₱0</span></div>
+                <div class="d-flex justify-content-between small py-2"><span>Funds in Loan:</span><span id="mGroupLoans" class="text-danger fw-bold">₱0</span></div>
             </div>
         </div>
         <div class="col-lg-7">
             <div class="card p-4 h-100 shadow-sm">
-                <h5 class="fw-bold">Payment History</h5>
+                <h5 class="fw-bold">Savings History</h5>
                 <div id="paymentTimeline"></div>
             </div>
         </div>
@@ -171,19 +179,18 @@
 
     function signIn() {
         const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).catch(err => alert("Error: " + err.message));
+        auth.signInWithPopup(provider).catch(err => alert("Login Blocked: " + err.message));
     }
 
     function manualAdmin() {
         const pin = prompt("Enter Admin PIN:");
         if(pin === "1234") {
             const mockUser = { email: ADMIN_EMAIL, displayName: "Admin User", isAdmin: true };
-            document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('topNav').style.display = 'block';
-            showPage('adminDashboard');
-            // Connect to cloud even with PIN
             db.collection("system").doc("main").onSnapshot(doc => {
                 if (doc.exists) appData = doc.data();
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('topNav').style.display = 'block';
+                showPage('adminDashboard');
                 renderAdmin();
             });
         }
@@ -191,10 +198,11 @@
 
     function signOut() { auth.signOut().then(() => location.reload()); }
 
-    // --- ADMIN RENDERING ---
+    // --- ADMIN DASHBOARD RENDERING ---
     function renderAdmin() {
         document.getElementById('setConfigAmount').value = appData.settings.contri;
         document.getElementById('setConfigInterest').value = appData.settings.interest;
+        
         const head = document.getElementById('tableHead');
         let h1 = '<tr><th>Member Name</th>'; let h2 = '<tr><td></td>';
         appData.cycles.forEach(c => { h1 += `<th colspan="2">${c}</th>`; h2 += `<th class="small">15th</th><th class="small">30th</th>`; });
@@ -207,7 +215,7 @@
 
         appData.members.forEach((m, mIdx) => {
             let mSum = 0;
-            let cells = `<td class="text-start ps-3"><b>${m.name}</b></td>`;
+            let cells = `<td class="text-start ps-3"><b>${m.name}</b><br><small class="text-muted">${m.email}</small></td>`;
             m.payments.forEach((p, pIdx) => {
                 if(p) mSum += appData.settings.contri;
                 cells += `<td><input type="checkbox" class="form-check-input" ${p?'checked':''} onclick="togglePay(${mIdx},${pIdx})"></td>`;
@@ -221,9 +229,9 @@
         let loanVal = 0;
         appData.loans.forEach((l, idx) => {
             loanVal += l.principal;
-            const interestVal = l.principal * (appData.settings.interest/100);
+            const interest = l.principal * (appData.settings.interest / 100);
             list.innerHTML += `<div class="p-2 border-bottom d-flex justify-content-between align-items-center mb-2 bg-light rounded shadow-sm">
-                <div><b>${l.borrower}</b><br><small class="text-muted">Due: ₱${(l.principal + interestVal).toLocaleString()}</small></div>
+                <div><b>${l.borrower}</b> <span class="badge bg-secondary ms-1">${l.type || 'Member'}</span><br><small class="text-muted">Due: ₱${(l.principal + interest).toLocaleString()}</small></div>
                 <button class="btn btn-sm btn-success py-1" onclick="collectLoan(${idx})">Collect</button>
             </div>`;
         });
@@ -231,17 +239,16 @@
         document.getElementById('admTotalColl').innerText = `₱${totalSavings.toLocaleString()}`;
         document.getElementById('admTotalLoans').innerText = `₱${loanVal.toLocaleString()}`;
         document.getElementById('admProfit').innerText = `₱${appData.profit.toLocaleString()}`;
-        document.getElementById('admCashHand').innerText = `₱${(totalSavings + appData.profit - loanVal).toLocaleString()}`;
     }
 
-    // --- MEMBER RENDERING ---
+    // --- MEMBER DASHBOARD RENDERING ---
     function renderMember(user) {
-        const member = appData.members.find(m => m.name === user.displayName);
+        const member = appData.members.find(m => m.email.toLowerCase() === user.email.toLowerCase());
         document.getElementById('mDashName').innerText = user.displayName;
         document.getElementById('mDashEmail').innerText = user.email;
         
         if(!member) {
-            document.getElementById('paymentTimeline').innerHTML = `<div class='alert alert-warning'>Welcome! Please ask the Admin to add your name: <b>"${user.displayName}"</b> to the ledger.</div>`;
+            document.getElementById('paymentTimeline').innerHTML = `<div class='alert alert-danger'>Access Denied. Your email (${user.email}) is not registered in the system.</div>`;
             return;
         }
         
@@ -256,39 +263,82 @@
             </div>`;
         });
         
-        const myLoan = appData.loans.find(l => l.borrower === user.displayName);
+        const myLoan = appData.loans.find(l => l.borrower === member.name);
         document.getElementById('mDashContri').innerText = `₱${saved.toLocaleString()}`;
-        document.getElementById('mDashLoan').innerText = myLoan ? `₱${(myLoan.principal * (1+appData.settings.interest/100)).toLocaleString()}` : "₱0";
+        document.getElementById('mDashLoan').innerText = myLoan ? `₱${(myLoan.principal * (appData.settings.interest/100)).toLocaleString()}` : "₱0";
         document.getElementById('mGroupProfit').innerText = `₱${appData.profit.toLocaleString()}`;
         let totalActiveLoans = 0; appData.loans.forEach(l => totalActiveLoans += l.principal);
         document.getElementById('mGroupLoans').innerText = `₱${totalActiveLoans.toLocaleString()}`;
     }
 
-    // --- CORE LOGIC ---
+    // --- ACTIONS ---
+    function toggleLoanType() {
+        const type = document.getElementById('loanTypeSelect').value;
+        document.getElementById('memberLoanBox').classList.toggle('d-none', type !== 'member');
+        document.getElementById('nonMemberLoanBox').classList.toggle('d-none', type !== 'non');
+    }
+
+    function releaseLoan() {
+        const type = document.getElementById('loanTypeSelect').value;
+        const amt = parseFloat(document.getElementById('loanAmtInput').value);
+        let borrowerName = "";
+        let info = "";
+
+        if(type === 'member') {
+            borrowerName = document.getElementById('loanMemberSelect').value;
+        } else {
+            borrowerName = document.getElementById('nonMemberName').value;
+            info = document.getElementById('nonMemberEmail').value;
+        }
+
+        if(amt && borrowerName) {
+            appData.loans.push({ 
+                borrower: borrowerName, 
+                principal: amt, 
+                type: type === 'non' ? 'External' : 'Member',
+                contact: info 
+            });
+            save();
+            document.getElementById('loanAmtInput').value = '';
+            document.getElementById('nonMemberName').value = '';
+        } else { alert("Missing borrower or amount!"); }
+    }
+
+    function addMember() { 
+        const name = prompt("Enter Member Name:");
+        const email = prompt("Enter Google Email for authorization:");
+        if(name && email) { 
+            appData.members.push({
+                name: name, 
+                email: email.trim(), 
+                payments: new Array(appData.cycles.length*2).fill(false)
+            }); 
+            save(); 
+        } 
+    }
+
+    function addNewMonth() { 
+        const m = prompt("Enter Month (e.g., Feb):"); 
+        if(m && !appData.cycles.includes(m)) { 
+            appData.cycles.push(m); 
+            appData.members.forEach(m => m.payments.push(false, false)); 
+            save(); 
+        } 
+    }
+
     function togglePay(mIdx, pIdx) { appData.members[mIdx].payments[pIdx] = !appData.members[mIdx].payments[pIdx]; save(); }
     function collectLoan(idx) { 
         appData.profit += (appData.loans[idx].principal * (appData.settings.interest/100)); 
         appData.loans.splice(idx, 1); 
         save(); 
     }
-    function releaseLoan() {
-        const amt = parseFloat(document.getElementById('loanAmtInput').value);
-        let b = document.getElementById('loanMemberSelect').value;
-        if(amt && b) { 
-            appData.loans.push({borrower: b, principal: amt}); 
-            save(); 
-            document.getElementById('loanAmtInput').value = ''; 
-        } else { alert("Please select a borrower and amount."); }
-    }
-    function addMember() { const n = prompt("Enter Member's exact Google Display Name:"); if(n) { appData.members.push({name: n, payments: new Array(appData.cycles.length*2).fill(false)}); save(); } }
-    function addNewMonth() { const m = document.getElementById('newMonthSelect').value; if(!appData.cycles.includes(m)) { appData.cycles.push(m); appData.members.forEach(m => m.payments.push(false, false)); save(); } }
     function updateSettings() { 
         appData.settings.contri = parseFloat(document.getElementById('setConfigAmount').value); 
         appData.settings.interest = parseFloat(document.getElementById('setConfigInterest').value);
         save(); 
-        alert("Cloud Settings Updated Successfully"); 
+        alert("Synced to Cloud"); 
     }
-    function resetSystem() { if(confirm("This will permanently delete ALL data. Continue?")) { db.collection("system").doc("main").delete().then(()=>location.reload()); } }
+    function resetSystem() { if(confirm("DELETE ALL DATA?")) { db.collection("system").doc("main").delete().then(()=>location.reload()); } }
     function save() { db.collection("system").doc("main").set(appData); }
 </script>
 </body>
