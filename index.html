@@ -198,6 +198,19 @@
     const db = firebase.firestore();
     let appData = { settings: { contri: 100, interest: 5 }, members: [], cycles: ["Jan"], hiddenMonths: [], loans: [], profit: 0, logs: [] };
 
+    // Helper for page refreshing and state persistence
+    async function syncAndRefresh(message = null) {
+        if (message) logAction(message);
+        try {
+            await db.collection("system").doc("main").set(appData);
+            // We use standard reload to clear memory and force fresh data pull
+            location.reload();
+        } catch (e) {
+            console.error("Sync failed", e);
+            alert("Connection error. Data not saved.");
+        }
+    }
+
     function calculateCash() {
         let totalS = 0;
         appData.members.forEach(m => {
@@ -259,7 +272,7 @@
         const next = monthNames[(monthNames.indexOf(last) + 1) % 12];
         appData.cycles.push(next);
         appData.members.forEach(m => m.payments.push(false, false));
-        logAction(`Ledger: Opened cycle for ${next}`); save();
+        syncAndRefresh(`Ledger: Opened cycle for ${next}`);
     }
 
     function renderAdmin() {
@@ -327,55 +340,53 @@
         const totalPaid = appData.settings.contri * (m.slots || 1);
         
         m.payments[pi] = isPaid; 
+        // Using direct save here to avoid page jumping during checkbox usage
+        save();
         logAction(`Ledger: ${m.name} ${cycle} ${period} marked as ${isPaid ? 'PAID (+₱'+totalPaid.toLocaleString()+')' : 'UNPAID (-₱'+totalPaid.toLocaleString()+')'}`);
-        save(); 
     }
 
-    function partial(i) {
+    async function partial(i) {
         const amt = Number(prompt(`Process Amortization for ${appData.loans[i].borrower}:`));
         if(amt > 0 && amt <= appData.loans[i].principal) { 
             const interestEarned = (amt * (appData.settings.interest/100));
             appData.profit += interestEarned; 
             appData.loans[i].principal -= amt; 
-            logAction(`Loan: ${appData.loans[i].borrower} partial pay ₱${amt.toLocaleString()} (+₱${interestEarned.toLocaleString()} Interest)`);
+            const logMsg = `Loan: ${appData.loans[i].borrower} partial pay ₱${amt.toLocaleString()} (+₱${interestEarned.toLocaleString()} Interest)`;
             if(appData.loans[i].principal <= 0) appData.loans.splice(i,1); 
-            save(); 
+            await syncAndRefresh(logMsg);
         }
     }
 
-    function full(i) { 
+    async function full(i) { 
         if(confirm("Confirm full account settlement?")) { 
             const loan = appData.loans[i];
             const interestEarned = (loan.principal * (appData.settings.interest/100));
             appData.profit += interestEarned; 
-            logAction(`Loan: ${loan.borrower} SETTLED FULL ₱${loan.principal.toLocaleString()} (+₱${interestEarned.toLocaleString()} Interest)`);
+            const logMsg = `Loan: ${loan.borrower} SETTLED FULL ₱${loan.principal.toLocaleString()} (+₱${interestEarned.toLocaleString()} Interest)`;
             appData.loans.splice(i,1); 
-            save(); 
+            await syncAndRefresh(logMsg);
         } 
     }
 
     function toggleH(m) { if(!appData.hiddenMonths) appData.hiddenMonths = []; if(appData.hiddenMonths.includes(m)) appData.hiddenMonths = appData.hiddenMonths.filter(x => x!==m); else appData.hiddenMonths.push(m); renderAdmin(); }
     
-    function releaseLoan() {
+    async function releaseLoan() {
         const type = document.getElementById('loanTypeSelect').value;
         const n = type === 'member' ? document.getElementById('loanMemberSelect').value : document.getElementById('guestNameInput').value;
         const a = Number(document.getElementById('loanAmtInput').value);
         if(n && a) { 
             appData.loans.push({borrower:n, principal:a}); 
-            logAction(`Loan: Approved ₱${a.toLocaleString()} disbursement for ${n}`); 
-            save(); 
+            await syncAndRefresh(`Loan: Approved ₱${a.toLocaleString()} disbursement for ${n}`);
         }
     }
 
-    function updateSettings() { 
+    async function updateSettings() { 
         appData.settings.contri = Number(document.getElementById('setConfigAmount').value); 
         appData.settings.interest = Number(document.getElementById('setConfigInterest').value); 
-        logAction(`Settings: Updated Global Parameters`); 
-        save(); 
-        alert("Parameters Updated"); 
+        await syncAndRefresh(`Settings: Updated Global Parameters`);
     }
 
-    function addMember() { 
+    async function addMember() { 
         const n = prompt("Full Legal Name:"); 
         const e = prompt("Registered Google Email:"); 
         const s = Number(prompt("Number of Slots (Shares):", "1")) || 1;
@@ -388,23 +399,20 @@
                 carryOver:0, 
                 banned: false
             }); 
-            logAction(`Admin: Enrolled ${n} with ${s} slot(s)`); 
-            save(); 
+            await syncAndRefresh(`Admin: Enrolled ${n} with ${s} slot(s)`);
         } 
     }
 
-    function deleteM(i) { 
+    async function deleteM(i) { 
         if(confirm("Permanently purge this member record?")) { 
             const name = appData.members[i].name;
             appData.members.splice(i,1); 
-            logAction(`Admin: DELETED member record for ${name}`);
-            save(); 
-            openMemberManager(); 
+            await syncAndRefresh(`Admin: DELETED member record for ${name}`);
         } 
     }
 
     function exportBackup() { logAction("System: Database export triggered"); const blob = new Blob([JSON.stringify(appData)], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `MSF_Report_${new Date().toISOString().slice(0,10)}.json`; a.click(); }
-    function importBackup() { const r = new FileReader(); r.onload = (e) => { appData = JSON.parse(e.target.result); logAction("System: Database restored from backup"); save(); }; r.readAsText(document.getElementById('importFile').files[0]); }
+    async function importBackup() { const r = new FileReader(); r.onload = async (e) => { appData = JSON.parse(e.target.result); await syncAndRefresh("System: Database restored from backup"); }; r.readAsText(document.getElementById('importFile').files[0]); }
     
     function renderMember(user) {
         const m = appData.members.find(x => x.email.toLowerCase() === user.email.toLowerCase());
@@ -451,17 +459,19 @@
         new bootstrap.Modal(document.getElementById('memberManagerModal')).show();
     }
 
-    function editM(i) { 
+    async function editM(i) { 
         const n = prompt("Edit Name:", appData.members[i].name); 
         const s = prompt("Edit Slots:", appData.members[i].slots || 1);
         if(n !== null) appData.members[i].name = n;
         if(s !== null) appData.members[i].slots = Number(s);
-        logAction(`Admin: Updated details for ${appData.members[i].name}`);
-        save(); 
-        openMemberManager(); 
+        await syncAndRefresh(`Admin: Updated details for ${appData.members[i].name}`);
     }
 
-    function banM(i) { appData.members[i].banned = !appData.members[i].banned; logAction(`Admin: ${appData.members[i].banned ? 'Banned' : 'Unbanned'} ${appData.members[i].name}`); save(); openMemberManager(); }
+    async function banM(i) { 
+        appData.members[i].banned = !appData.members[i].banned; 
+        await syncAndRefresh(`Admin: ${appData.members[i].banned ? 'Banned' : 'Unbanned'} ${appData.members[i].name}`);
+    }
+
     async function secureSystemWipe() { if (btoa(prompt("SECURITY PIN:")) === WIPE_PIN) { if(confirm("WIPE SYSTEM? This is irreversible.")) { await db.collection("system").doc("main").set({ settings: { contri: 100, interest: 5 }, members: [], cycles: ["Jan"], loans: [], profit: 0, logs: [] }); location.reload(); } } }
 </script>
 </body>
