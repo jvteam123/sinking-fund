@@ -32,7 +32,6 @@
         .ledger-wrapper { overflow: auto; max-height: 500px; border-radius: 12px; border: 1px solid #f1f5f9; }
         .table thead th { background: #f8fafc; color: #475569; font-weight: 600; font-size: 0.7rem; border-bottom: 2px solid #f1f5f9; }
         
-        /* Loan Portfolio Styling */
         .loan-item { padding: 1rem; border: 1px solid #f1f5f9; border-radius: 12px; margin-bottom: 0.75rem; background: #fff; transition: 0.2s; }
         .loan-item:hover { border-color: #cbd5e1; }
         .loan-user { font-weight: 700; color: #0f172a; font-size: 0.9rem; }
@@ -43,10 +42,16 @@
         .btn-settle { background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
 
         .log-entry { font-size: 0.75rem; padding: 10px; border-bottom: 1px dotted #e2e8f0; display: flex; align-items: center; }
-        .log-time { font-weight: 600; color: #94a3b8; width: 80px; flex-shrink: 0; }
+        /* Increased width for date inclusion */
+        .log-time { font-weight: 600; color: #94a3b8; width: 110px; flex-shrink: 0; font-size: 0.65rem; }
         
         .month-chip { display: inline-block; padding: 6px 14px; border-radius: 10px; font-size: 0.75rem; background: #f1f5f9; color: #475569; margin: 2px; cursor: pointer; border: 1px solid transparent; font-weight: 500; }
         .month-chip.active { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; font-weight: 700; }
+
+        .payment-box { border-radius: 8px; padding: 10px; text-align: center; border: 1px solid #e2e8f0; }
+        .payment-box.paid { background: #f0fdf4; color: #16a34a; border-color: #dcfce7; }
+        .payment-box.pending { background: #fff1f2; color: #e11d48; border-color: #ffe4e6; }
+        .member-hero { background: var(--primary); color: white; padding: 2rem; border-radius: 20px; margin-bottom: 2rem; }
     </style>
 </head>
 <body>
@@ -223,10 +228,16 @@
     function save() { db.collection("system").doc("main").set(appData); }
     function signIn() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function signOut() { auth.signOut().then(() => location.reload()); }
+    
+    // UPDATED: logAction now includes date and time
     function logAction(act) {
         if (!appData.logs) appData.logs = [];
-        const time = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-        appData.logs.unshift({ time, act });
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+        const fullStamp = `${dateStr}, ${timeStr}`;
+        
+        appData.logs.unshift({ time: fullStamp, act });
         if (appData.logs.length > 50) appData.logs.pop();
     }
 
