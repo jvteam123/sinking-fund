@@ -169,7 +169,7 @@
                     <button class="btn btn-sm btn-success fw-bold" onclick="exportFullSpreadsheet()"><i class="fas fa-file-excel me-2"></i>EXPORT SPREADSHEET</button>
                 </div>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-light border w-50" onclick="exportBackup()">JSON BACKUP</button>
+                    <button class="btn btn-sm btn-light border w-50" onclick="exportBackup()">JSON EXPORT</button>
                     <label class="btn btn-sm btn-light border w-50 m-0 text-center">IMPORT<input type="file" id="importFile" hidden onchange="importBackup()"></label>
                 </div>
                 <button class="btn btn-link btn-sm text-danger w-100 mt-2 text-decoration-none fw-bold" onclick="secureSystemWipe()">SYSTEM HARD RESET</button>
@@ -429,10 +429,23 @@
     }
 
     function confirmPayment(mi, pi) {
-        appData.members[mi].payments[pi] = !appData.members[mi].payments[pi];
-        logAction(`Contribution update: ${appData.members[mi].name} - ${appData.cycles[Math.floor(pi/2)]}`);
-        save();
-        notify("Ledger Saved");
+        const member = appData.members[mi];
+        const cycle = appData.cycles[Math.floor(pi/2)];
+        const day = pi % 2 === 0 ? "15th" : "30th";
+        const isCurrentlyPaid = member.payments[pi];
+        const actionText = isCurrentlyPaid ? "remove payment status for" : "mark as paid";
+
+        if(confirm(`Are you sure you want to ${actionText} ${member.name} for ${cycle} ${day}?`)) {
+            appData.members[mi].payments[pi] = !isCurrentlyPaid;
+            const logMsg = isCurrentlyPaid 
+                ? `${member.name} payment removed for ${cycle} (${day})` 
+                : `${member.name} paid for ${cycle} (${day})`;
+            logAction(logMsg);
+            save();
+            notify("Ledger Saved");
+        } else {
+            renderAdmin(); // Refresh UI to reset checkbox state
+        }
     }
 
     function toggleH(m) {
