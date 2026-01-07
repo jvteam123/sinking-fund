@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MSF PRO | Smooth Audit System</title>
+    <title>MSF PRO | Advanced Audit System</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -11,59 +11,62 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root { --primary: #0d6efd; --accent: #ff7e14; --bg: #f8fafc; }
-        body { background-color: var(--bg); color: #1e293b; font-family: 'Inter', sans-serif; }
+        :root { --primary: #0d6efd; --accent: #ff7e14; --bg: #f8fafc; --sidebar: #ffffff; }
+        body { background-color: var(--bg); color: #1e293b; font-family: 'Inter', 'Segoe UI', sans-serif; overflow-x: hidden; }
         
         /* Loading Overlay */
         #loaderOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.85);
             display: none; align-items: center; justify-content: center;
-            z-index: 9999; backdrop-filter: blur(4px);
+            z-index: 9999; backdrop-filter: blur(3px);
         }
-        .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+        .spinner { width: 45px; height: 45px; border: 5px solid #f3f3f3; border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* UI Styles */
+        /* Navbar & Sidebar Original Styles */
         .navbar { background: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 1.5rem; }
-        .stat-card { border: none; border-radius: 16px; color: white; padding: 1.5rem; }
+        .stat-card { border: none; border-radius: 16px; color: white; padding: 1.5rem; transition: transform 0.2s; }
         .bg-cash { background: linear-gradient(135deg, #059669, #10b981); }
         .bg-loans { background: linear-gradient(135deg, #dc2626, #ef4444); }
         .bg-profit { background: linear-gradient(135deg, #d97706, #f59e0b); }
         .bg-pool { background: linear-gradient(135deg, #4f46e5, #6366f1); }
         
-        .card { border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 1.5rem; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-        .section-title { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 1rem; }
-        .ledger-wrapper { overflow: auto; max-height: 500px; border-radius: 12px; border: 1px solid #f1f5f9; }
-        .table thead th { background: #f8fafc; font-size: 0.7rem; border-bottom: 2px solid #f1f5f9; }
+        .card { border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); margin-bottom: 1.5rem; background: white; }
+        .section-title { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 1rem; display: flex; align-items: center; }
         
-        .loan-item { padding: 1rem; border: 1px solid #f1f5f9; border-radius: 12px; margin-bottom: 0.75rem; }
-        .receipt-box { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 15px; background: #fff; }
+        /* Ledger & Loan UI */
+        .ledger-wrapper { overflow: auto; max-height: 500px; border-radius: 12px; border: 1px solid #f1f5f9; }
+        .table thead th { background: #f8fafc; color: #475569; font-size: 0.7rem; border-bottom: 2px solid #f1f5f9; }
+        .loan-item { padding: 1.2rem; border: 1px solid #f1f5f9; border-radius: 12px; margin-bottom: 0.75rem; background: #fff; }
+        .loan-penalty { color: #dc2626; font-size: 0.65rem; font-weight: 800; animation: blinker 1.5s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
+
+        /* Receipt */
+        .receipt-box { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 15px; background: #fff; position: relative; }
         .receipt-signed { border-color: #10b981; background: #f0fdf4; }
         .slot-badge { background: #e2e8f0; color: #475569; padding: 2px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; }
+        .member-hero { background: var(--primary); color: white; padding: 2rem; border-radius: 20px; margin-bottom: 2rem; }
+
+        #loginPage { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f1f5f9; }
     </style>
 </head>
 <body>
 
-<div id="loaderOverlay">
-    <div class="text-center">
-        <div class="spinner mb-3 mx-auto"></div>
-        <div class="fw-bold text-muted">Synchronizing Data...</div>
-    </div>
-</div>
+<div id="loaderOverlay"><div class="text-center"><div class="spinner mb-2 mx-auto"></div><div class="small fw-bold text-muted">SAVING...</div></div></div>
 
 <nav id="topNav" class="navbar sticky-top" style="display:none">
     <div class="container-fluid d-flex justify-content-between align-items-center">
         <span class="navbar-brand fw-bold" style="color:var(--accent)"><i class="fas fa-landmark me-2"></i>MSF PRO</span>
-        <button class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold" onclick="signOut()">EXIT</button>
+        <button class="btn btn-sm btn-light border rounded-pill px-3 fw-bold" onclick="signOut()">LOGOUT</button>
     </div>
 </nav>
 
-<div id="loginPage" class="container text-center py-5">
-    <div class="card mx-auto p-5 shadow-lg" style="max-width:400px; margin-top:15vh; border-radius:25px;">
-        <i class="fas fa-fingerprint fa-3x mb-3 text-primary"></i>
-        <h4>Secure Access</h4>
-        <button class="btn btn-primary w-100 py-3 mt-3 fw-bold" onclick="signIn()">AUTHENTICATE</button>
+<div id="loginPage">
+    <div class="card p-5 text-center shadow-lg" style="max-width: 400px; border-radius: 25px;">
+        <i class="fas fa-vault fa-3x mb-3 text-primary"></i>
+        <h4 class="fw-bold">Audit Access</h4>
+        <button class="btn btn-primary w-100 py-3 mt-3 rounded-pill fw-bold" onclick="signIn()">SIGN IN WITH GOOGLE</button>
     </div>
 </div>
 
@@ -72,74 +75,75 @@
         <div class="col-md-3"><div class="stat-card bg-cash"><h6>Net Liquidity</h6><h3 class="fw-bold" id="admCash">₱0</h3></div></div>
         <div class="col-md-3"><div class="stat-card bg-loans"><h6>Total Loans</h6><h3 class="fw-bold" id="admLoans">₱0</h3></div></div>
         <div class="col-md-3"><div class="stat-card bg-profit"><h6>Interest Profit</h6><h3 class="fw-bold" id="admProfit">₱0</h3></div></div>
-        <div class="col-md-3"><div class="stat-card bg-pool"><h6>Asset Pool</h6><h3 class="fw-bold" id="admPool">₱0</h3></div></div>
+        <div class="col-md-3"><div class="stat-card bg-pool"><h6>Total Assets</h6><h3 class="fw-bold" id="admPool">₱0</h3></div></div>
     </div>
 
     <div class="row g-4">
         <div class="col-lg-8">
             <div class="card p-4">
-                <div class="section-title">Sinking Fund Ledger</div>
-                <div class="ledger-wrapper">
-                    <table class="table text-center align-middle mb-0">
-                        <thead id="tableHead"></thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="section-title mb-0"><i class="fas fa-table me-2"></i>SINKING FUND LEDGER</div>
+                    <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" onclick="autoAddNextMonth()">+ NEW MONTH</button>
                 </div>
+                <div class="ledger-wrapper"><table class="table text-center align-middle mb-0"><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table></div>
             </div>
+            
             <div class="card p-4">
-                <div class="section-title">Loan Management & Penalties</div>
-                <div id="loanLedgerList" class="row"></div>
+                <div class="section-title"><i class="fas fa-file-invoice-dollar me-2"></i>Loan Aging & Detailed Interests</div>
+                <div id="loanLedgerList" class="row g-3"></div>
             </div>
         </div>
+
         <div class="col-lg-4">
             <div class="card p-4 border-top border-4 border-primary">
-                <div class="section-title text-primary">Controls</div>
+                <div class="section-title text-primary">Administration</div>
                 <button class="btn btn-primary w-100 mb-2 py-2 fw-bold" onclick="addMember()">ENROLL MEMBER</button>
-                <button class="btn btn-outline-dark w-100 py-2 fw-bold" onclick="openMemberManager()">DIRECTORY</button>
+                <button class="btn btn-outline-dark w-100 py-2 fw-bold" onclick="openMemberManager()">MEMBER DIRECTORY</button>
             </div>
+            
             <div class="card p-4 border-top border-4 border-danger">
-                <div class="section-title text-danger">New Loan</div>
+                <div class="section-title text-danger">Issue New Loan</div>
                 <select id="loanMemberSelect" class="form-select mb-2"></select>
-                <input type="number" id="loanAmtInput" class="form-control mb-2" placeholder="Amount">
-                <button class="btn btn-danger w-100 py-2 fw-bold" onclick="releaseLoan()">DISBURSE</button>
+                <input type="number" id="loanAmtInput" class="form-control mb-2" placeholder="Principal Amount">
+                <button class="btn btn-danger w-100 py-2 fw-bold" onclick="releaseLoan()">DISBURSE FUNDS</button>
             </div>
+
             <div class="card p-4">
-                <div class="section-title">Settings</div>
+                <div class="section-title">Global Settings</div>
                 <div class="row g-2 mb-3">
                     <div class="col-6"><label class="small">CONTRI</label><input type="number" id="setConfigAmount" class="form-control"></div>
-                    <div class="col-6"><label class="small">INTEREST</label><input type="number" id="setConfigInterest" class="form-control"></div>
+                    <div class="col-6"><label class="small">INTEREST %</label><input type="number" id="setConfigInterest" class="form-control"></div>
                 </div>
-                <button class="btn btn-dark w-100 fw-bold" onclick="updateSettings()">SAVE</button>
+                <button class="btn btn-dark w-100 fw-bold" onclick="updateSettings()">SAVE SETTINGS</button>
             </div>
         </div>
     </div>
 </div>
 
 <div id="memberDashboard" class="container py-5 px-lg-5" style="display:none">
-    <div class="card p-4 bg-primary text-white mb-4">
-        <h2 id="mDashName" class="fw-bold">...</h2>
-        <div id="mDashSlots" class="badge bg-light text-primary"></div>
+    <div class="member-hero shadow-sm mb-4">
+        <h2 class="fw-bold mb-1" id="mDashName">...</h2>
+        <span id="mDashSlots" class="badge bg-white text-primary"></span>
     </div>
     <div class="row g-4">
         <div class="col-md-6">
             <div class="card p-4">
-                <div class="section-title">Personal Receipt</div>
+                <div class="section-title">Latest Receipt</div>
                 <div id="receiptContainer"></div>
             </div>
         </div>
         <div class="col-md-6">
             <div class="card p-4">
-                <div class="section-title">Debt Status</div>
-                <div id="memberLoanInfo"></div>
+                <div class="section-title">Financial Summary</div>
+                <div class="d-flex justify-content-between mb-2"><span>Savings:</span><b id="mDashContri">₱0</b></div>
+                <div class="d-flex justify-content-between text-danger"><span>Active Debt:</span><b id="mDashLoan">₱0</b></div>
             </div>
         </div>
     </div>
 </div>
 
 <div class="modal fade" id="memberManagerModal" tabindex="-1">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content"><div class="modal-body p-0" id="memberManagerList"></div></div>
-    </div>
+    <div class="modal-dialog modal-xl"><div class="modal-content"><div id="memberManagerList" class="modal-body p-0"></div></div></div>
 </div>
 
 <script>
@@ -158,44 +162,30 @@
     const ADMINS = ["ev.lorens.ebrado@gmail.com", "ev.anderson4470@gmail.com"];
     let appData = { settings: { contri: 100, interest: 5, penalty: 5 }, members: [], cycles: ["Jan"], loans: [], profit: 0 };
 
-    // SHOW LOADER INSTEAD OF RELOAD
-    function setLoader(show) {
-        document.getElementById('loaderOverlay').style.display = show ? 'flex' : 'none';
-    }
+    function setLoader(show) { document.getElementById('loaderOverlay').style.display = show ? 'flex' : 'none'; }
 
-    async function sync(msg) {
+    async function sync() {
         setLoader(true);
-        try {
-            await db.collection("system").doc("main").set(appData);
-            // No location.reload() here. The onSnapshot will update the UI automatically.
-        } catch (e) {
-            alert("Error saving data.");
-        }
+        await db.collection("system").doc("main").set(appData);
         setLoader(false);
     }
 
     auth.onAuthStateChanged(user => {
         if (user) {
             db.collection("system").doc("main").onSnapshot(doc => {
-                if (doc.exists) {
-                    appData = doc.data();
-                    refreshUI(user);
+                if (doc.exists) appData = doc.data();
+                document.getElementById('topNav').style.display = 'block';
+                document.getElementById('loginPage').style.display = 'none';
+                if (ADMINS.includes(user.email.toLowerCase())) {
+                    document.getElementById('adminDashboard').style.display = 'block';
+                    renderAdmin();
+                } else {
+                    document.getElementById('memberDashboard').style.display = 'block';
+                    renderMember(user);
                 }
             });
         }
     });
-
-    function refreshUI(user) {
-        document.getElementById('topNav').style.display = 'block';
-        document.getElementById('loginPage').style.display = 'none';
-        if (ADMINS.includes(user.email.toLowerCase())) {
-            document.getElementById('adminDashboard').style.display = 'block';
-            renderAdmin();
-        } else {
-            document.getElementById('memberDashboard').style.display = 'block';
-            renderMember(user);
-        }
-    }
 
     function renderAdmin() {
         document.getElementById('setConfigAmount').value = appData.settings.contri;
@@ -204,21 +194,22 @@
         let totalS = 0;
         appData.members.forEach(m => {
             totalS += Number(m.carryOver || 0);
-            m.payments.forEach(p => { if(p) totalS += (appData.settings.contri * (m.slots || 1)); });
+            const slots = m.slots || 1;
+            m.payments.forEach(p => { if(p) totalS += (appData.settings.contri * slots); });
         });
 
-        let actL = 0;
-        let loanHtml = '';
+        let actL = 0; let loanHtml = '';
         appData.loans.forEach((l, i) => {
             const days = Math.floor((new Date() - new Date(l.date)) / 86400000);
             const overdue = days > 30;
             let total = l.principal * (1 + (appData.settings.interest/100));
             if(overdue) total += (l.principal * (appData.settings.penalty/100));
             actL += total;
-
             loanHtml += `<div class="col-md-6"><div class="loan-item border-start border-4 ${overdue?'border-danger':'border-primary'}">
-                <b>${l.borrower}</b><div class="h4 text-danger">₱${total.toLocaleString()}</div>
-                <button class="btn btn-sm btn-success mt-2" onclick="settleLoan(${i}, ${total})">SETTLE</button>
+                <div class="fw-bold">${l.borrower}</div><div class="h4 text-danger mb-0">₱${total.toLocaleString()}</div>
+                <small class="text-muted">Issued: ${new Date(l.date).toLocaleDateString()}</small>
+                ${overdue ? '<div class="loan-penalty">OVERDUE +5%</div>' : ''}
+                <br><button class="btn btn-sm btn-success mt-2 fw-bold" onclick="settleLoan(${i}, ${total})">SETTLE FULL</button>
             </div></div>`;
         });
 
@@ -226,19 +217,16 @@
         document.getElementById('admLoans').innerText = `₱${actL.toLocaleString()}`;
         document.getElementById('admProfit').innerText = `₱${appData.profit.toLocaleString()}`;
         document.getElementById('admPool').innerText = `₱${(totalS + appData.profit).toLocaleString()}`;
-        document.getElementById('loanLedgerList').innerHTML = loanHtml;
+        document.getElementById('loanLedgerList').innerHTML = loanHtml || '<div class="text-center py-4">No active loans.</div>';
 
-        // Ledger
-        let head = '<tr><th class="text-start ps-3">MEMBER</th>';
+        let head = '<tr><th class="ps-3 text-start">MEMBER</th>';
         appData.cycles.forEach(c => head += `<th colspan="2" class="border-start">${c}</th>`);
         document.getElementById('tableHead').innerHTML = head + '</tr>';
 
         let body = '';
         appData.members.forEach((m, mi) => {
-            let cells = `<td class="text-start ps-3"><b>${m.name}</b> <span class="slot-badge">${m.slots}S</span></td>`;
-            m.payments.forEach((p, pi) => {
-                cells += `<td><input type="checkbox" ${p?'checked':''} onclick="toggleP(${mi}, ${pi})"></td>`;
-            });
+            let cells = `<td class="ps-3 text-start"><b>${m.name}</b> <span class="slot-badge">${m.slots}S</span></td>`;
+            m.payments.forEach((p, pi) => cells += `<td><input type="checkbox" ${p?'checked':''} onclick="toggleP(${mi}, ${pi})"></td>`);
             body += `<tr>${cells}</tr>`;
         });
         document.getElementById('tableBody').innerHTML = body;
@@ -257,6 +245,14 @@
         }
     }
 
+    async function settleLoan(i, total) {
+        if(confirm("Confirm full settlement?")) {
+            appData.profit += (total - appData.loans[i].principal);
+            appData.loans.splice(i, 1);
+            await sync();
+        }
+    }
+
     async function releaseLoan() {
         const n = document.getElementById('loanMemberSelect').value;
         const a = Number(document.getElementById('loanAmtInput').value);
@@ -266,10 +262,12 @@
         }
     }
 
-    async function settleLoan(i, total) {
-        if(confirm("Confirm settlement?")) {
-            appData.profit += (total - appData.loans[i].principal);
-            appData.loans.splice(i, 1);
+    async function addMember() {
+        const n = prompt("Name:");
+        const e = prompt("Email:");
+        const s = Number(prompt("Slots:", "1")) || 1;
+        if(n && e) {
+            appData.members.push({ name: n, email: e.toLowerCase(), slots: s, payments: new Array(appData.cycles.length*2).fill(false) });
             await sync();
         }
     }
@@ -280,30 +278,22 @@
         await sync();
     }
 
-    async function addMember() {
-        const n = prompt("Name:");
-        const e = prompt("Email:");
-        const s = Number(prompt("Slots:", "1"));
-        if(n && e) {
-            appData.members.push({ name: n, email: e.toLowerCase(), slots: s, payments: new Array(appData.cycles.length*2).fill(false) });
-            await sync();
-        }
-    }
-
     function renderMember(user) {
         const m = appData.members.find(x => x.email.toLowerCase() === user.email.toLowerCase());
         if(!m) return;
         document.getElementById('mDashName').innerText = m.name;
-        document.getElementById('mDashSlots').innerText = `${m.slots} Slots`;
+        document.getElementById('mDashSlots').innerText = `${m.slots} Slots Registered`;
         
         const lastPaid = m.payments.lastIndexOf(true);
         if(lastPaid !== -1) {
             document.getElementById('receiptContainer').innerHTML = `
                 <div class="receipt-box ${m.signed ? 'receipt-signed' : ''}">
-                    <h6>ID: ${m.receiptID}</h6>
-                    <p>Amount: ₱${(appData.settings.contri * m.slots).toLocaleString()}</p>
-                    ${m.signed ? '<b>SIGNED</b>' : '<button class="btn btn-dark btn-sm w-100" onclick="signR()">SIGN</button>'}
+                    <h6>E-RECEIPT: ${m.receiptID}</h6>
+                    <p class="mb-1">Period Amount: ₱${(appData.settings.contri * m.slots).toLocaleString()}</p>
+                    ${m.signed ? '<b class="text-success">OFFICIALLY SIGNED</b>' : '<button class="btn btn-dark btn-sm w-100 fw-bold" onclick="signR()">SIGN & VERIFY</button>'}
                 </div>`;
+        } else {
+            document.getElementById('receiptContainer').innerHTML = "No recent payments found.";
         }
     }
 
@@ -313,6 +303,16 @@
         await sync();
     }
 
+    function openMemberManager() {
+        let h = '<div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>NAME</th><th>SLOTS</th><th>ACTION</th></tr></thead><tbody>';
+        appData.members.forEach((m, i) => {
+            h += `<tr><td><b>${m.name}</b><br><small>${m.email}</small></td><td>${m.slots}</td><td><button class="btn btn-sm btn-outline-danger" onclick="deleteM(${i})">Delete</button></td></tr>`;
+        });
+        document.getElementById('memberManagerList').innerHTML = h + '</tbody></table></div>';
+        new bootstrap.Modal(document.getElementById('memberManagerModal')).show();
+    }
+
+    async function deleteM(i) { if(confirm("Permanently delete?")) { appData.members.splice(i, 1); await sync(); } }
     function signIn() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function signOut() { auth.signOut().then(() => location.reload()); }
 </script>
