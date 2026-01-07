@@ -83,8 +83,8 @@
 <div id="adminDashboard" class="container-fluid py-4 px-lg-5" style="display:none">
     <div class="row g-3 mb-4">
         <div class="col-md-3"><div class="stat-card bg-cash"><h6>Cash On Hand</h6><h3 class="fw-bold" id="admCash">₱0</h3></div></div>
-        <div class="col-md-3"><div class="stat-card bg-loans"><h6>Accounts Receivable</h6><h3 class="fw-bold" id="admLoans">₱0</h3></div></div>
-        <div class="col-md-3"><div class="stat-card bg-profit"><h6>Retained Earnings</h6><h3 class="fw-bold" id="admProfit">₱0</h3></div></div>
+        <div class="col-md-3"><div class="stat-card bg-loans"><h6>Amounts Loan</h6><h3 class="fw-bold" id="admLoans">₱0</h3></div></div>
+        <div class="col-md-3"><div class="stat-card bg-profit"><h6>Loan Earnings</h6><h3 class="fw-bold" id="admProfit">₱0</h3></div></div>
         <div class="col-md-3"><div class="stat-card bg-pool"><h6>Asset Valuation</h6><h3 class="fw-bold" id="admPool">₱0</h3></div></div>
     </div>
 
@@ -293,8 +293,8 @@
                     <span class="loan-label">Payable:</span><span class="loan-val fw-bold">₱${(l.principal * (1 + appData.settings.interest/100)).toLocaleString()}</span>
                 </div>
                 <div class="d-flex gap-2 mt-2">
-                    <button class="btn btn-sm btn-outline-primary w-50" onclick="partial(${i})">Amortize</button>
-                    <button class="btn btn-sm btn-success w-50" onclick="full(${i})">Settle</button>
+                    <button class="btn btn-sm btn-outline-primary w-50" onclick="partial(${i})">Partial Payment</button>
+                    <button class="btn btn-sm btn-success w-50" onclick="full(${i})">Paid</button>
                 </div>
             </div>
         `).join('') || '<div class="text-center py-5 text-muted small">No Active Liabilities</div>';
