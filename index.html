@@ -11,8 +11,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root { --primary: #0d6efd; --accent: #ff7e14; --bg: #f8fafc; --sidebar: #ffffff; --member-grad: linear-gradient(135deg, #1e293b, #334155); }
-        body { background-color: var(--bg); color: #1e293b; font-family: 'Inter', 'Segoe UI', sans-serif; }
+        :root { --primary: #0d6efd; --accent: #ff7e14; --bg: #f8fafc; --sidebar: #ffffff; --member-grad: linear-gradient(135deg, #0f172a, #1e293b); --success-green: #10b981; }
+        body { background-color: var(--bg); color: #1e293b; font-family: 'Inter', 'Segoe UI', sans-serif; letter-spacing: -0.01em; }
         
         #loginPage { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f1f5f9; }
         .login-card { width: 400px; background: white; padding: 3rem 2rem; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.05); text-align: center; border-bottom: 5px solid var(--accent); }
@@ -20,30 +20,25 @@
 
         .navbar { background: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 1.5rem; }
         .stat-card { border: none; border-radius: 16px; color: white; padding: 1.5rem; transition: transform 0.2s; }
-        .stat-card:hover { transform: translateY(-3px); }
         .bg-cash { background: linear-gradient(135deg, #059669, #10b981); }
         .bg-loans { background: linear-gradient(135deg, #dc2626, #ef4444); }
         .bg-profit { background: linear-gradient(135deg, #d97706, #f59e0b); }
         .bg-pool { background: linear-gradient(135deg, #4f46e5, #6366f1); }
         
         .card { border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); margin-bottom: 1.5rem; background: white; }
-        .section-title { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 1rem; display: flex; align-items: center; }
-        
-        .ledger-wrapper { overflow: auto; max-height: 500px; border-radius: 12px; border: 1px solid #f1f5f9; }
-        .table thead th { background: #f8fafc; color: #475569; font-weight: 600; font-size: 0.7rem; border-bottom: 2px solid #f1f5f9; }
+        .section-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: #64748b; margin-bottom: 1.2rem; display: flex; align-items: center; }
         
         /* Layout Stability */
         .fixed-height-card { height: 750px; display: flex; flex-direction: column; }
         .audit-scroll { flex-grow: 1; overflow-y: auto; background: #fafbfc; border-radius: 12px; padding: 10px; }
 
-        /* Loan Card Styling */
+        /* Loan Card Styling from Photo */
         .loan-card-styled { 
             background: #fff; border: 1px solid #f1f1f1; border-radius: 20px; padding: 20px; 
             position: relative; border-left: 6px solid #d93025; box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-bottom: 1rem;
         }
         .loan-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
         .loan-name { font-weight: 900; font-size: 1.2rem; color: #1a1a1a; margin: 0; }
-        .loan-ref { font-size: 0.7rem; color: #70757a; margin-bottom: 10px; }
         .loan-status-badge { background: #ea4335; color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 900; }
         .loan-data-container { background: #f8f9fa; border-radius: 10px; padding: 12px; margin-bottom: 15px; }
         .loan-data-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.7rem; }
@@ -55,25 +50,36 @@
         .btn-partial { border: 2px solid #1a73e8; color: #1a73e8; background: transparent; border-radius: 8px; font-weight: 800; font-size: 0.75rem; padding: 8px; width: 100%; text-transform: uppercase; }
         .btn-settle { background: #188038; color: white; border: none; border-radius: 8px; font-weight: 800; font-size: 0.75rem; padding: 8px; width: 100%; text-transform: uppercase; }
 
-        .log-entry { font-size: 0.7rem; padding: 10px; border-bottom: 1px solid #f1f5f9; }
-        .log-meta { display: flex; justify-content: space-between; font-weight: 700; font-size: 0.65rem; margin-bottom: 3px; }
-
         .loan-pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: auto; padding-top: 15px; }
         .page-btn { border: 1px solid #e2e8f0; background: white; padding: 5px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
-        .page-info { font-size: 0.75rem; font-weight: 800; color: #64748b; }
 
-        .month-chip { display: inline-block; padding: 6px 14px; border-radius: 10px; font-size: 0.75rem; background: #f1f5f9; color: #475569; margin: 2px; cursor: pointer; border: 1px solid transparent; font-weight: 500; }
-        .month-chip.active { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; font-weight: 700; }
+        /* Member Dashboard Improvements */
+        .member-hero { background: var(--member-grad); color: white; padding: 3rem; border-radius: 30px; margin-bottom: 2.5rem; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+        .member-hero::before { content: ''; position: absolute; top: -50%; left: -20%; width: 100%; height: 200%; background: radial-gradient(circle, rgba(255,126,20,0.1) 0%, transparent 70%); pointer-events: none; }
+        
+        .fund-card { background: white; border-radius: 20px; padding: 1.8rem; border: 1px solid #e2e8f0; height: 100%; transition: 0.3s; }
+        .fund-card:hover { border-color: #cbd5e1; box-shadow: 0 10px 20px rgba(0,0,0,0.02); }
+        .fund-label { font-size: 0.65rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem; }
+        .fund-value { font-size: 1.75rem; font-weight: 900; color: #0f172a; }
+        
+        .payment-box { border-radius: 14px; padding: 15px; text-align: center; border: 1px solid #e2e8f0; background: #fff; transition: 0.2s; position: relative; }
+        .payment-box.paid { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+        .payment-box.paid::after { content: '\f058'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; top: 5px; right: 8px; font-size: 0.7rem; }
+        .payment-box.pending { background: #fff; color: #94a3b8; border-style: dashed; }
+        .payment-box b { font-size: 0.8rem; display: block; margin-top: 5px; }
 
-        .member-hero { background: var(--member-grad); color: white; padding: 2.5rem; border-radius: 24px; margin-bottom: 2rem; position: relative; overflow: hidden; }
-        .fund-card { background: white; border-radius: 18px; padding: 1.5rem; border: 1px solid #e2e8f0; height: 100%; }
-        .slot-pill { font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; background: #e2e8f0; color: #475569; font-weight: 700; margin-left: 5px; }
+        .sys-mini-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 18px; }
+        .sys-mini-label { font-size: 0.6rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+        .sys-mini-val { font-size: 1rem; font-weight: 800; color: #1e293b; }
 
         /* Toast Styling */
         .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
         .custom-toast { background: #1e293b; color: white; padding: 12px 24px; border-radius: 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-top: 10px; transform: translateX(120%); transition: transform 0.3s ease-in-out; }
         .custom-toast.show { transform: translateX(0); }
-        .toast-icon { color: #10b981; }
+        
+        .month-chip { display: inline-block; padding: 6px 14px; border-radius: 10px; font-size: 0.75rem; background: #f1f5f9; color: #475569; margin: 2px; cursor: pointer; border: 1px solid transparent; font-weight: 500; }
+        .month-chip.active { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; font-weight: 700; }
+        .slot-pill { font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; background: #e2e8f0; color: #475569; font-weight: 700; margin-left: 5px; }
     </style>
 </head>
 <body>
@@ -82,8 +88,8 @@
 
 <nav id="topNav" class="navbar sticky-top" style="display:none">
     <div class="container-fluid d-flex justify-content-between align-items-center">
-        <span class="navbar-brand fw-bold" style="color:var(--accent)"><i class="fas fa-landmark me-2"></i>MSF PRO <span class="text-muted fw-light" style="font-size: 0.8rem">SYSTEM</span></span>
-        <button class="btn btn-sm btn-light border rounded-pill px-3 fw-bold" onclick="signOut()">EXIT SYSTEM</button>
+        <span class="navbar-brand fw-bold" style="color:var(--accent)"><i class="fas fa-landmark me-2"></i>MSF PRO <span class="text-muted fw-light" style="font-size: 0.8rem">GATEWAY</span></span>
+        <button class="btn btn-sm btn-light border rounded-pill px-4 fw-bold" onclick="signOut()">SIGN OUT</button>
     </div>
 </nav>
 
@@ -177,28 +183,43 @@
 </div>
 
 <div id="memberDashboard" class="container py-5 px-lg-5" style="display:none">
-    <div class="member-hero shadow-sm">
+    <div class="member-hero shadow-lg">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h1 class="fw-bold mb-1" id="mDashName">...</h1>
-                <p class="text-white-50 mb-0"><i class="fas fa-check-circle me-1"></i> Active Shareholder | <span id="mDashSlotLabel" class="fw-bold text-white">0 Slots</span></p>
+                <div class="badge bg-success mb-3 px-3 py-2 rounded-pill" style="font-size: 0.65rem; letter-spacing: 1px;">VERIFIED SHAREHOLDER</div>
+                <h1 class="fw-bold mb-1 display-5" id="mDashName">...</h1>
+                <p class="text-white-50 mb-0 d-flex align-items-center"><i class="fas fa-id-card me-2"></i> Sinking Fund Account | <span id="mDashSlotLabel" class="fw-bold text-white ms-2">--</span></p>
             </div>
-            <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <div class="d-inline-block text-start p-3 rounded-4" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
-                    <div class="small text-uppercase opacity-75 fw-bold" style="font-size: 0.6rem">Member Equity Value</div>
-                    <h3 class="mb-0 fw-bold" id="mDashTotalEquity">₱0</h3>
+            <div class="col-md-4 text-md-end mt-4 mt-md-0">
+                <div class="d-inline-block text-start p-4 rounded-4" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1);">
+                    <div class="small text-uppercase opacity-75 fw-bold mb-1" style="font-size: 0.6rem; letter-spacing: 1px;">Current Equity Value</div>
+                    <h2 class="mb-0 fw-bold" id="mDashTotalEquity" style="color: var(--accent);">₱0</h2>
                 </div>
             </div>
         </div>
     </div>
+
     <div id="memberActiveContent">
+        <div class="section-title"><i class="fas fa-chart-pie me-2"></i>Personal Asset Distribution</div>
         <div class="row g-4 mb-5">
-            <div class="col-md-4"><div class="fund-card border-top border-4 border-success"><div class="fund-label">Total Cash Contribution</div><div class="fund-value text-success" id="mDashContri">₱0</div></div></div>
-            <div class="col-md-4"><div class="fund-card border-top border-4 border-primary"><div class="fund-label">Estimated Dividend Share</div><div class="fund-value text-primary" id="mDashShare">₱0</div></div></div>
-            <div class="col-md-4"><div class="fund-card border-top border-4 border-danger"><div class="fund-label">Active Liabilities</div><div class="fund-value text-danger" id="mDashLoan">₱0</div></div></div>
+            <div class="col-md-4"><div class="fund-card border-top border-4 border-success"><div class="fund-label">Principal Contribution</div><div class="fund-value" id="mDashContri">₱0</div><div class="small text-muted mt-2">Paid-in capital balance</div></div></div>
+            <div class="col-md-4"><div class="fund-card border-top border-4 border-primary"><div class="fund-label">Earned Dividends</div><div class="fund-value" id="mDashShare">₱0</div><div class="small text-muted mt-2">Share of system profit</div></div></div>
+            <div class="col-md-4"><div class="fund-card border-top border-4 border-danger"><div class="fund-label">Total Liabilities</div><div class="fund-value text-danger" id="mDashLoan">₱0</div><div class="small text-muted mt-2">Outstanding loan + interest</div></div></div>
         </div>
+
+        <div class="section-title"><i class="fas fa-landmark me-2"></i>Organization Fund Transparency</div>
+        <div class="row g-3 mb-5">
+            <div class="col-md-3"><div class="sys-mini-card"><div class="sys-mini-label">System Cash On Hand</div><div class="sys-mini-val text-success" id="mDashSysCash">₱0</div></div></div>
+            <div class="col-md-3"><div class="sys-mini-card"><div class="sys-mini-label">Active Receivables</div><div class="sys-mini-val" id="mDashSysLoans">₱0</div></div></div>
+            <div class="col-md-3"><div class="sys-mini-card"><div class="sys-mini-label">Total Retained Profit</div><div class="sys-mini-val" id="mDashSysProfit">₱0</div></div></div>
+            <div class="col-md-3"><div class="sys-mini-card"><div class="sys-mini-label">Gross Valuation</div><div class="sys-mini-val" id="mDashSysPool">₱0</div></div></div>
+        </div>
+
         <div class="card p-4 border-0 shadow-sm rounded-4">
-            <div class="section-title"><i class="fas fa-calendar-check me-2"></i>Verified Payment Timeline</div>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="section-title mb-0"><i class="fas fa-history me-2"></i>Verification Timeline</div>
+                <div class="text-muted small fw-bold"><i class="fas fa-circle text-success me-1" style="font-size: 0.5rem"></i> Live Synchronization</div>
+            </div>
             <div id="paymentTimeline" class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3"></div>
         </div>
     </div>
@@ -229,18 +250,14 @@
     let currentLoanPage = 1;
     const loansPerPage = 3;
 
-    // NOTIFICATION SYSTEM
     function notify(msg, type = 'success') {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
         toast.className = 'custom-toast';
-        toast.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle toast-icon':'fa-info-circle'}"></i> <span>${msg}</span>`;
+        toast.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle text-success':'fa-info-circle'}"></i> <span>${msg}</span>`;
         container.appendChild(toast);
         setTimeout(() => toast.classList.add('show'), 100);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
+        setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
     }
 
     function calculateCash() {
@@ -316,13 +333,7 @@
         document.getElementById('admPool').innerText = `₱${(totalS + appData.profit).toLocaleString()}`;
         
         renderPaginatedLoans();
-        
-        document.getElementById('auditLogList').innerHTML = (appData.logs || []).map(l => `
-            <div class="log-entry">
-                <div class="log-meta"><span>${l.time}</span><span class="text-primary">${l.admin}</span></div>
-                <div>${l.act}</div>
-            </div>
-        `).join('');
+        document.getElementById('auditLogList').innerHTML = (appData.logs || []).map(l => `<div class="log-entry"><div class="log-meta"><span>${l.time}</span><span class="text-primary">${l.admin}</span></div><div>${l.act}</div></div>`).join('');
         document.getElementById('loanMemberSelect').innerHTML = appData.members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
     }
 
@@ -338,7 +349,7 @@
             const interestAmt = l.principal * (appData.settings.interest / 100);
             return `<div class="loan-card-styled">
                 <div class="loan-header-row">
-                    <div><h4 class="loan-name">${l.borrower}</h4><div class="loan-ref">Ref: #LN-${originalIndex+100}</div></div>
+                    <div><h4 class="loan-name">${l.borrower}</h4><div class="loan-ref" style="font-size: 0.7rem; color: #70757a">Ref: #LN-${originalIndex+100}</div></div>
                     <span class="loan-status-badge">PENDING</span>
                 </div>
                 <div class="loan-data-container">
@@ -367,33 +378,45 @@
     function renderMember(user) {
         const m = appData.members.find(x => x.email.toLowerCase() === user.email.toLowerCase());
         if(!m) return;
-        let totalS = 0; appData.members.forEach(me => { 
+        
+        let totalS = 0; 
+        appData.members.forEach(me => { 
             totalS += Number(me.carryOver || 0); 
             me.payments.forEach(p => { if(p) totalS += (Number(appData.settings.contri) * (me.slots || 1)); }); 
         });
+        
+        let actL = 0; (appData.loans || []).forEach(l => actL += Number(l.principal));
         let myS = Number(m.carryOver || 0); m.payments.forEach(p => { if(p) myS += (Number(appData.settings.contri) * (m.slots || 1)); });
         const myL = (appData.loans || []).find(l => l.borrower === m.name);
         const myLoanVal = myL ? (myL.principal * (1 + appData.settings.interest/100)) : 0;
         const myShare = (totalS > 0 ? (myS/totalS * appData.profit) : 0);
         
+        // Update DOM
         document.getElementById('mDashName').innerText = m.name;
-        document.getElementById('mDashSlotLabel').innerText = `${m.slots || 1} Slot(s)`;
+        document.getElementById('mDashSlotLabel').innerText = `${m.slots || 1} Registered Slot(s)`;
         document.getElementById('mDashTotalEquity').innerText = `₱${(myS + myShare - myLoanVal).toLocaleString(undefined, {maximumFractionDigits:0})}`;
         document.getElementById('mDashContri').innerText = `₱${myS.toLocaleString()}`;
         document.getElementById('mDashShare').innerText = `₱${myShare.toLocaleString(undefined, {maximumFractionDigits:0})}`;
         document.getElementById('mDashLoan').innerText = `₱${myLoanVal.toLocaleString()}`;
-        document.getElementById('paymentTimeline').innerHTML = m.payments.map((p, i) => `<div class="col"><div class="payment-box ${p?'paid':'pending'} small">${appData.cycles[Math.floor(i/2)]} ${i%2===0?'15th':'30th'}<br><b>${p?'PAID':'--'}</b></div></div>`).join('');
+        
+        // System Transparency
+        document.getElementById('mDashSysCash').innerText = `₱${(totalS + appData.profit - actL).toLocaleString()}`;
+        document.getElementById('mDashSysLoans').innerText = `₱${actL.toLocaleString()}`;
+        document.getElementById('mDashSysProfit').innerText = `₱${appData.profit.toLocaleString()}`;
+        document.getElementById('mDashSysPool').innerText = `₱${(totalS + appData.profit).toLocaleString()}`;
+
+        document.getElementById('paymentTimeline').innerHTML = m.payments.map((p, i) => `
+            <div class="col">
+                <div class="payment-box ${p?'paid':'pending'}">
+                    <span style="font-size: 0.6rem; font-weight: 800; color: #64748b;">${appData.cycles[Math.floor(i/2)]} ${i%2===0?'15th':'30th'}</span>
+                    <b>${p?'VERIFIED':'PENDING'}</b>
+                </div>
+            </div>`).join('');
     }
 
-    function confirmPayment(mi, pi) { 
-        appData.members[mi].payments[pi] = !appData.members[mi].payments[pi]; 
-        logAction(`Ledger Update: ${appData.members[mi].name}`); 
-        save();
-        notify("Payment Status Updated");
-    }
-
+    // Business Logic Functions
+    function confirmPayment(mi, pi) { appData.members[mi].payments[pi] = !appData.members[mi].payments[pi]; logAction(`Ledger Update: ${appData.members[mi].name}`); save(); notify("Status Updated"); }
     function toggleH(m) { if(!appData.hiddenMonths) appData.hiddenMonths = []; if(appData.hiddenMonths.includes(m)) appData.hiddenMonths = appData.hiddenMonths.filter(x => x!==m); else appData.hiddenMonths.push(m); renderAdmin(); }
-    
     function releaseLoan() {
         const type = document.getElementById('loanTypeSelect').value;
         const n = type === 'member' ? document.getElementById('loanMemberSelect').value : document.getElementById('guestNameInput').value;
@@ -401,36 +424,29 @@
         if(n && a) { 
             const d = new Date(); const ds = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
             appData.loans.push({borrower:n, principal:a, date: ds}); 
-            logAction(`Loan Release: ₱${a} to ${n}`); 
-            save(); 
-            notify(`Loan Approved for ${n}`);
+            logAction(`Loan: ₱${a} to ${n}`); save(); notify(`Approved for ${n}`);
             document.getElementById('loanAmtInput').value = '';
         }
     }
-
     function partial(i) {
         const amt = Number(prompt(`Amortize ${appData.loans[i].borrower}:`));
         if(amt > 0 && amt <= appData.loans[i].principal) {
             appData.profit += (amt * (appData.settings.interest/100));
             appData.loans[i].principal -= amt;
-            logAction(`Partial Pay: ${appData.loans[i].borrower} ₱${amt}`);
+            logAction(`Amortize: ${appData.loans[i].borrower} ₱${amt}`);
             if(appData.loans[i].principal <= 0) appData.loans.splice(i,1);
-            save();
-            notify("Payment Processed Successfully");
+            save(); notify("Payment Processed");
         }
     }
-
     function full(i) {
         if(confirm("Settle full?")) {
             const name = appData.loans[i].borrower;
             appData.profit += (appData.loans[i].principal * (appData.settings.interest/100));
-            logAction(`Full Settlement: ${name}`);
+            logAction(`Settlement: ${name}`);
             appData.loans.splice(i,1);
-            save();
-            notify(`Liability Cleared: ${name}`);
+            save(); notify(`Cleared: ${name}`);
         }
     }
-
     function openMemberManager() {
         let h = '<div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th class="ps-4">MEMBER</th><th>SLOTS</th><th>STATUS</th><th class="text-end pe-4">ACTIONS</th></tr></thead><tbody>';
         appData.members.forEach((m, i) => {
@@ -439,39 +455,23 @@
         document.getElementById('memberManagerList').innerHTML = h + '</tbody></table></div>';
         new bootstrap.Modal(document.getElementById('memberManagerModal')).show();
     }
-
-    function banM(i) { appData.members[i].banned = !appData.members[i].banned; save(); openMemberManager(); notify("Member Status Changed"); }
-    function deleteM(i) { if(confirm("Delete?")) { appData.members.splice(i,1); save(); openMemberManager(); notify("Member Removed"); } }
-    
+    function banM(i) { appData.members[i].banned = !appData.members[i].banned; save(); openMemberManager(); notify("Status Changed"); }
+    function deleteM(i) { if(confirm("Delete?")) { appData.members.splice(i,1); save(); openMemberManager(); notify("Removed"); } }
     function autoAddNextMonth() { 
         const last = appData.cycles[appData.cycles.length - 1]; 
         const next = monthNames[(monthNames.indexOf(last) + 1) % 12]; 
         appData.cycles.push(next); 
         appData.members.forEach(m => m.payments.push(false, false)); 
-        save(); 
-        notify(`Financial Cycle: ${next} Initiated`);
+        save(); notify(`Cycle: ${next} Started`);
     }
-
     function toggleLoanInputs() { const isG = document.getElementById('loanTypeSelect').value === 'guest'; document.getElementById('memberSelectWrap').classList.toggle('d-none', isG); document.getElementById('guestInputWrap').classList.toggle('d-none', !isG); }
-    
-    function updateSettings() { 
-        appData.settings.contri = Number(document.getElementById('setConfigAmount').value); 
-        appData.settings.interest = Number(document.getElementById('setConfigInterest').value); 
-        save(); 
-        notify("Global Settings Updated"); 
-    }
-
+    function updateSettings() { appData.settings.contri = Number(document.getElementById('setConfigAmount').value); appData.settings.interest = Number(document.getElementById('setConfigInterest').value); save(); notify("Settings Saved"); }
     function addMember() { 
         const n = prompt("Name:"); const e = prompt("Email:"); const s = prompt("Slots:", "1"); 
-        if(n && e) { 
-            appData.members.push({name:n, email:e.toLowerCase(), slots: Number(s), payments: new Array(appData.cycles.length*2).fill(false), carryOver:0, banned: false}); 
-            save(); 
-            notify(`Account Created: ${n}`);
-        } 
+        if(n && e) { appData.members.push({name:n, email:e.toLowerCase(), slots: Number(s), payments: new Array(appData.cycles.length*2).fill(false), carryOver:0, banned: false}); save(); notify(`Enrolled: ${n}`); } 
     }
-
     function exportBackup() { const blob = new Blob([JSON.stringify(appData)], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `MSF_Backup.json`; a.click(); notify("Backup Exported"); }
-    function importBackup() { const r = new FileReader(); r.onload = (e) => { appData = JSON.parse(e.target.result); save(); notify("Backup Restored Successfully"); }; r.readAsText(document.getElementById('importFile').files[0]); }
+    function importBackup() { const r = new FileReader(); r.onload = (e) => { appData = JSON.parse(e.target.result); save(); notify("Restored Successfully"); }; r.readAsText(document.getElementById('importFile').files[0]); }
     async function secureSystemWipe() { if (btoa(prompt("PIN:")) === WIPE_PIN) { if(confirm("WIPE?")) { await db.collection("system").doc("main").set({ settings: { contri: 100, interest: 5 }, members: [], cycles: ["Jan"], loans: [], profit: 0, logs: [] }); location.reload(); } } }
     function exportFullDataToSpreadsheet() {
         let csv = "TYPE,NAME,EMAIL,BALANCE,SLOTS\n";
@@ -480,8 +480,7 @@
             csv += `MEMBER,"${m.name}","${m.email}",${s},${m.slots}\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `MSF_Export.csv`; a.click();
-        notify("Spreadsheet Downloaded");
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `MSF_Data.csv`; a.click(); notify("CSV Exported");
     }
 </script>
 </body>
