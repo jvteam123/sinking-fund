@@ -11,7 +11,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root { --primary: #0d6efd; --accent: #ff7e14; --bg: #f8fafc; --sidebar: #ffffff; }
+        :root { --primary: #0d6efd; --accent: #ff7e14; --bg: #f8fafc; --sidebar: #ffffff; --member-grad: linear-gradient(135deg, #1e293b, #334155); }
         body { background-color: var(--bg); color: #1e293b; font-family: 'Inter', 'Segoe UI', sans-serif; }
         
         #loginPage { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f1f5f9; }
@@ -47,10 +47,16 @@
         .month-chip { display: inline-block; padding: 6px 14px; border-radius: 10px; font-size: 0.75rem; background: #f1f5f9; color: #475569; margin: 2px; cursor: pointer; border: 1px solid transparent; font-weight: 500; }
         .month-chip.active { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; font-weight: 700; }
 
-        .payment-box { border-radius: 8px; padding: 10px; text-align: center; border: 1px solid #e2e8f0; }
-        .payment-box.paid { background: #f0fdf4; color: #16a34a; border-color: #dcfce7; }
-        .payment-box.pending { background: #fff1f2; color: #e11d48; border-color: #ffe4e6; }
-        .member-hero { background: var(--primary); color: white; padding: 2rem; border-radius: 20px; margin-bottom: 2rem; }
+        .payment-box { border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #e2e8f0; transition: 0.2s; }
+        .payment-box.paid { background: #f0fdf4; color: #16a34a; border-color: #dcfce7; border-bottom: 4px solid #16a34a; }
+        .payment-box.pending { background: #fff1f2; color: #e11d48; border-color: #ffe4e6; border-bottom: 4px solid #e11d48; }
+        
+        .member-hero { background: var(--member-grad); color: white; padding: 2.5rem; border-radius: 24px; margin-bottom: 2rem; position: relative; overflow: hidden; }
+        .member-hero::after { content: '\f19c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; right: -20px; bottom: -20px; font-size: 150px; opacity: 0.05; }
+        
+        .fund-card { background: white; border-radius: 18px; padding: 1.5rem; border: 1px solid #e2e8f0; height: 100%; }
+        .fund-label { font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 0.5rem; }
+        .fund-value { font-size: 1.5rem; font-weight: 800; color: #0f172a; }
         .slot-pill { font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; background: #e2e8f0; color: #475569; font-weight: 700; margin-left: 5px; }
     </style>
 </head>
@@ -66,9 +72,9 @@
 <div id="loginPage">
     <div class="login-card">
         <div class="mb-4 text-center">
-            <i class="fas fa-fingerprint fa-3x mb-3" style="color:var(--accent)"></i>
+            <i class="fas fa-shield-halved fa-3x mb-3" style="color:var(--accent)"></i>
             <h4 class="fw-bold mb-0">Financial Gateway</h4>
-            <p class="text-muted small">Authorized Access Only</p>
+            <p class="text-muted small">Secure Member Access</p>
         </div>
         <button class="btn-login" onclick="signIn()"><i class="fab fa-google me-2"></i> Authenticate Account</button>
     </div>
@@ -153,23 +159,80 @@
 </div>
 
 <div id="memberDashboard" class="container py-5 px-lg-5" style="display:none">
-    <div class="member-hero shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-4">
-        <div>
-            <h1 class="fw-bold mb-1" id="mDashName">...</h1>
-            <p class="text-white-50 mb-0"><i class="fas fa-check-circle me-1"></i> Verified Active Participant <span id="mDashSlot" class="badge bg-white text-primary ms-2"></span></p>
-        </div>
-        <div class="text-end">
-            <h6 class="small text-uppercase opacity-50 mb-1">Last Update</h6>
-            <span class="badge bg-light text-dark px-3 py-2">Real-time Data Stream</span>
+    <div class="member-hero shadow-sm">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="fw-bold mb-1" id="mDashName">...</h1>
+                <p class="text-white-50 mb-0">
+                    <i class="fas fa-check-circle me-1"></i> Active Shareholder | 
+                    <span id="mDashSlotLabel" class="fw-bold text-white">0 Slots</span>
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <div class="d-inline-block text-start p-3 rounded-4" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                    <div class="small text-uppercase opacity-75 fw-bold" style="font-size: 0.6rem">Member Equity Value</div>
+                    <h3 class="mb-0 fw-bold" id="mDashTotalEquity">₱0</h3>
+                </div>
+            </div>
         </div>
     </div>
+
     <div id="bannedNotice" class="alert alert-danger d-none p-4 rounded-4 shadow-sm border-0"><i class="fas fa-exclamation-triangle me-2"></i><strong>Account Restricted:</strong> Contact Admin.</div>
+    
     <div id="memberActiveContent">
-        <div class="row g-4 mb-4">
-            <div class="col-md-4"><div class="card p-4 border-0 shadow-sm border-top border-5 border-success"><h6>Personal Savings</h6><h2 class="text-success fw-bold" id="mDashContri">₱0</h2></div></div>
-            <div class="col-md-4"><div class="card p-4 border-0 shadow-sm border-top border-5 border-primary"><h6>Accrued Share</h6><h2 class="text-primary fw-bold" id="mDashShare">₱0</h2></div></div>
-            <div class="col-md-4"><div class="card p-4 border-0 shadow-sm border-top border-5 border-danger"><h6>Personal Liabilities</h6><h2 class="text-danger fw-bold" id="mDashLoan">₱0</h2></div></div>
+        <div class="section-title"><i class="fas fa-chart-line me-2"></i>Personal Fund Performance</div>
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="fund-card border-top border-4 border-success">
+                    <div class="fund-label">Total Cash Contribution</div>
+                    <div class="fund-value text-success" id="mDashContri">₱0</div>
+                    <div class="small text-muted mt-2">Verified principal payments</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="fund-card border-top border-4 border-primary">
+                    <div class="fund-label">Estimated Dividend Share</div>
+                    <div class="fund-value text-primary" id="mDashShare">₱0</div>
+                    <div class="small text-muted mt-2">Prorated portion of system profit</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="fund-card border-top border-4 border-danger">
+                    <div class="fund-label">Active Liabilities</div>
+                    <div class="fund-value text-danger" id="mDashLoan">₱0</div>
+                    <div class="small text-muted mt-2">Current outstanding loans</div>
+                </div>
+            </div>
         </div>
+
+        <div class="section-title"><i class="fas fa-vault me-2"></i>Organizational Fund Status</div>
+        <div class="row g-3 mb-5">
+            <div class="col-md-3">
+                <div class="card p-3 mb-0 shadow-sm border-0">
+                    <div class="small text-muted fw-bold">SYSTEM LIQUID CASH</div>
+                    <div class="h5 mb-0 fw-bold" id="mDashSysCash">₱0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-3 mb-0 shadow-sm border-0">
+                    <div class="small text-muted fw-bold">TOTAL RECEIVABLES</div>
+                    <div class="h5 mb-0 fw-bold" id="mDashSysLoans">₱0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-3 mb-0 shadow-sm border-0">
+                    <div class="small text-muted fw-bold">RETAINED PROFITS</div>
+                    <div class="h5 mb-0 fw-bold" id="mDashSysProfit">₱0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-3 mb-0 shadow-sm border-0">
+                    <div class="small text-muted fw-bold">COLLECTIVE ASSETS</div>
+                    <div class="h5 mb-0 fw-bold" id="mDashSysPool">₱0</div>
+                </div>
+            </div>
+        </div>
+
         <div class="card p-4 border-0 shadow-sm rounded-4">
             <div class="section-title"><i class="fas fa-calendar-check me-2"></i>Verified Payment Timeline</div>
             <div id="paymentTimeline" class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3"></div>
@@ -321,23 +384,38 @@
         if(!m) return;
         if(m.banned) { document.getElementById('bannedNotice').classList.remove('d-none'); document.getElementById('memberActiveContent').classList.add('d-none'); return; }
         
+        // System wide totals
         let totalS = 0; appData.members.forEach(me => { 
             totalS += Number(me.carryOver || 0); 
             me.payments.forEach(p => { if(p) totalS += (Number(appData.settings.contri) * (me.slots || 1)); }); 
         });
+        let actL = 0; (appData.loans || []).forEach(l => actL += Number(l.principal));
 
+        // Personal totals
         let myS = Number(m.carryOver || 0); m.payments.forEach(p => { if(p) myS += (Number(appData.settings.contri) * (m.slots || 1)); });
         const myL = (appData.loans || []).find(l => l.borrower === m.name);
+        const myLoanVal = myL ? (myL.principal * (1 + appData.settings.interest/100)) : 0;
         
+        const myShare = (totalS > 0 ? (myS/totalS * appData.profit) : 0);
+        const myEquity = (myS + myShare) - myLoanVal;
+
+        // UI Updates
         document.getElementById('mDashName').innerText = m.name;
-        document.getElementById('mDashSlot').innerText = `${m.slots || 1} Slot(s)`;
+        document.getElementById('mDashSlotLabel').innerText = `${m.slots || 1} Slot(s)`;
+        document.getElementById('mDashTotalEquity').innerText = `₱${myEquity.toLocaleString(undefined, {maximumFractionDigits:0})}`;
         document.getElementById('mDashContri').innerText = `₱${myS.toLocaleString()}`;
-        document.getElementById('mDashShare').innerText = `₱${(totalS > 0 ? (myS/totalS * appData.profit) : 0).toLocaleString(undefined, {maximumFractionDigits:0})}`;
-        document.getElementById('mDashLoan').innerText = myL ? `₱${(myL.principal * (1 + appData.settings.interest/100)).toLocaleString()}` : "₱0";
+        document.getElementById('mDashShare').innerText = `₱${myShare.toLocaleString(undefined, {maximumFractionDigits:0})}`;
+        document.getElementById('mDashLoan').innerText = `₱${myLoanVal.toLocaleString()}`;
+        
+        // System Fund Updates
+        document.getElementById('mDashSysCash').innerText = `₱${(totalS + appData.profit - actL).toLocaleString()}`;
+        document.getElementById('mDashSysLoans').innerText = `₱${actL.toLocaleString()}`;
+        document.getElementById('mDashSysProfit').innerText = `₱${appData.profit.toLocaleString()}`;
+        document.getElementById('mDashSysPool').innerText = `₱${(totalS + appData.profit).toLocaleString()}`;
+
         document.getElementById('paymentTimeline').innerHTML = m.payments.map((p, i) => `<div class="col"><div class="payment-box ${p?'paid':'pending'} small">${appData.cycles[Math.floor(i/2)]} ${i%2===0?'15th':'30th'}<br><b>${p?'VERIFIED':'UNPAID'}</b></div></div>`).join('');
     }
 
-    // UPDATED: EXPORT TO SPREADSHEET (CSV)
     function exportFullDataToSpreadsheet() {
         let csv = "DATA TYPE,NAME/ADMIN,DETAILS,BALANCE/AMOUNT,SLOTS,DATE/TIME\n";
         appData.members.forEach(m => {
