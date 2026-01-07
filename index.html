@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PH Sinking Fund Cloud v10.6</title>
+    <title>PH Sinking Fund - Cloud v10.7</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -16,6 +16,7 @@
         .card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
         .unpaid-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; background-color: #ffe5e5; color: var(--danger-red); border: 1px solid var(--danger-red); font-weight: bold; }
         .history-item { border-left: 5px solid var(--success-green); margin-bottom: 12px; padding: 12px; background: white; border-radius: 8px; }
+        .history-item.unpaid { border-left-color: #dee2e6; color: #adb5bd; }
         .transparency-card { background: linear-gradient(135deg, #003366 0%, #00509d 100%); color: white; }
     </style>
 </head>
@@ -25,17 +26,12 @@
     <div class="spinner-border text-primary mb-3"></div>
     <h5 class="fw-bold text-primary">SF CLOUD SYSTEM</h5>
     <p id="loadStatus" class="text-muted small">Connecting to Cloud Database...</p>
-    <div id="timeoutControls" class="d-none text-center">
-        <p class="text-danger small fw-bold">Browser is blocking connection!</p>
-        <button class="btn btn-primary btn-sm mb-2" onclick="forceLogin()">Force Open Login</button><br>
-        <button class="btn btn-outline-secondary btn-xs" style="font-size:10px" onclick="location.reload()">Retry</button>
-    </div>
 </div>
 
 <div id="loginPage" class="container py-5 mt-5 text-center">
     <div class="card p-5 shadow-lg d-inline-block" style="max-width: 450px;">
         <h2 class="fw-bold text-primary">System Login</h2>
-        <p class="text-muted mb-4">Authorized Access Only</p>
+        <p class="text-muted mb-4">Official Sinking Fund Management</p>
         <button class="btn btn-outline-dark w-100 py-3 d-flex align-items-center justify-content-center fw-bold" onclick="signIn()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="22" class="me-3">
             Sign in with Google
@@ -43,10 +39,13 @@
     </div>
 </div>
 
-<nav id="topNav" class="navbar navbar-dark mb-4 d-none">
-    <div class="container d-flex justify-content-between">
-        <span class="navbar-brand fw-bold">🇵🇭 SF PRO v10.6</span>
-        <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="signOut()">Logout</button>
+<nav id="topNav" class="navbar navbar-dark mb-4 d-none sticky-top">
+    <div class="container d-flex justify-content-between align-items-center">
+        <span class="navbar-brand fw-bold">🇵🇭 SF PRO v10.7</span>
+        <div class="d-flex align-items-center">
+            <span id="navUserName" class="text-white me-3 d-none d-md-inline small"></span>
+            <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="signOut()">Logout</button>
+        </div>
     </div>
 </nav>
 
@@ -82,7 +81,10 @@
                     <option value="member">To Member</option><option value="non">To External</option>
                 </select>
                 <div id="memberInputs"><select id="loanMemberSelect" class="form-select mb-2"></select></div>
-                <div id="nonInputs" class="d-none"><input type="text" id="nonName" class="form-control mb-2" placeholder="Borrower Name"></div>
+                <div id="nonInputs" class="d-none">
+                    <input type="text" id="nonName" class="form-control mb-2" placeholder="Borrower Name">
+                    <input type="text" id="nonContact" class="form-control mb-2" placeholder="Contact/Note">
+                </div>
                 <input type="number" id="loanAmtInput" class="form-control mb-3" placeholder="Amount (₱)">
                 <button class="btn btn-danger w-100 fw-bold" onclick="releaseLoan()">APPROVE LOAN</button>
                 <hr>
@@ -106,22 +108,24 @@
 
 <div id="memberDashboard" class="container">
     <div class="row g-4 justify-content-center">
-        <div class="col-lg-5 text-center">
-            <div class="card p-4 transparency-card border-0 shadow">
+        <div class="col-lg-5">
+            <div class="card p-4 transparency-card border-0 shadow mb-4 text-center">
                 <img id="userPhoto" class="rounded-circle mx-auto mb-3 border border-3 border-white shadow" width="85">
-                <h2 id="mDashName" class="fw-bold"></h2>
+                <h2 id="mDashName" class="fw-bold mb-1"></h2>
                 <hr class="bg-white">
                 <div class="row">
                     <div class="col-6"><small>Total Savings</small><h4 id="mDashContri">₱0</h4></div>
                     <div class="col-6"><small>Active Loan</small><h4 id="mDashLoan" class="text-warning">₱0</h4></div>
                 </div>
             </div>
+            <div class="card p-3 shadow-sm border-start border-primary border-5">
+                <h6 class="fw-bold text-primary">Transparency Info</h6>
+                <div class="d-flex justify-content-between small border-bottom py-2"><span>Group Profit:</span><span id="mGroupProfit" class="text-success fw-bold">₱0</span></div>
+                <div class="d-flex justify-content-between small py-2"><span>Group Active Loans:</span><span id="mGroupLoans" class="text-danger fw-bold">₱0</span></div>
+            </div>
         </div>
         <div class="col-lg-7">
-            <div class="card p-4 h-100 shadow-sm">
-                <h5>Transaction History</h5>
-                <div id="paymentTimeline"></div>
-            </div>
+            <div class="card p-4 h-100 shadow-sm"><h5>Transaction History</h5><div id="paymentTimeline"></div></div>
         </div>
     </div>
 </div>
@@ -137,13 +141,6 @@
     };
 
     const ADMIN_EMAIL = "ev.lorens.ebrado@gmail.com";
-    
-    // Auto-Bypass Watchdog
-    const bypassTimer = setTimeout(() => {
-        document.getElementById('timeoutControls').classList.remove('d-none');
-        document.getElementById('loadStatus').innerText = "Database connection slow...";
-    }, 5000);
-
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -151,14 +148,15 @@
     let appData = { settings: { contri: 100, interest: 5 }, members: [], cycles: ["Jan"], loans: [], profit: 0 };
 
     auth.onAuthStateChanged(user => {
-        clearTimeout(bypassTimer);
         if (user) {
-            document.getElementById('loadStatus').innerText = "Syncing with Cloud...";
+            document.getElementById('loadingScreen').style.display = 'flex';
+            document.getElementById('navUserName').innerText = user.displayName;
             db.collection("system").doc("main").onSnapshot(doc => {
                 if (doc.exists) appData = doc.data();
                 else db.collection("system").doc("main").set(appData);
                 
                 document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('loginPage').style.display = 'none';
                 document.getElementById('topNav').classList.remove('d-none');
 
                 if (user.email === ADMIN_EMAIL) {
@@ -168,19 +166,12 @@
                     showPage('memberDashboard');
                     renderMember(user);
                 }
-            }, err => {
-                alert("Security Error: " + err.message);
             });
         } else {
             document.getElementById('loadingScreen').style.display = 'none';
             showPage('loginPage');
         }
     });
-
-    function forceLogin() {
-        document.getElementById('loadingScreen').style.display = 'none';
-        showPage('loginPage');
-    }
 
     function showPage(id) {
         ['loginPage', 'adminDashboard', 'memberDashboard'].forEach(p => document.getElementById(p).style.display = 'none');
@@ -238,24 +229,27 @@
             const cy = appData.cycles[Math.floor(idx/2)];
             const cut = idx % 2 === 0 ? "15th" : "30th";
             if(p) saved += appData.settings.contri;
-            timeline.innerHTML += `<div class="history-item ${p?'':'text-muted opacity-50'} d-flex justify-content-between"><span>${cy} ${cut}</span><b>${p ? '₱'+appData.settings.contri : 'UNPAID'}</b></div>`;
+            timeline.innerHTML += `<div class="history-item ${p?'':'unpaid'} d-flex justify-content-between"><span>${cy} ${cut} Contribution</span><b>${p ? '₱'+appData.settings.contri : 'UNPAID'}</b></div>`;
         });
         document.getElementById('mDashContri').innerText = `₱${saved.toLocaleString()}`;
         const loan = appData.loans.find(l => l.borrower === user.displayName);
         document.getElementById('mDashLoan').innerText = loan ? `₱${(loan.principal * (1+appData.settings.interest/100)).toLocaleString()}` : "₱0";
+        document.getElementById('mGroupProfit').innerText = `₱${appData.profit.toLocaleString()}`;
+        let totalActiveLoans = 0; appData.loans.forEach(l => totalActiveLoans += l.principal);
+        document.getElementById('mGroupLoans').innerText = `₱${totalActiveLoans.toLocaleString()}`;
     }
 
     function togglePay(mIdx, pIdx) { appData.members[mIdx].payments[pIdx] = !appData.members[mIdx].payments[pIdx]; save(); }
     function collectLoan(idx) { appData.profit += (appData.loans[idx].principal * (appData.settings.interest/100)); appData.loans.splice(idx, 1); save(); }
     function releaseLoan() {
         const amt = parseFloat(document.getElementById('loanAmtInput').value);
-        let b = document.getElementById('loanType').value === 'member' ? document.getElementById('loanMemberSelect').value : document.getElementById('nonName').value;
-        if(b && amt) { appData.loans.push({borrower: b, principal: amt}); save(); document.getElementById('loanAmtInput').value = ''; }
+        let b = document.getElementById('loanType').value === 'member' ? document.getElementById('loanMemberSelect').value : document.getElementById('nonName').value + " (" + document.getElementById('nonContact').value + ")";
+        if(amt) { appData.loans.push({borrower: b, principal: amt}); save(); document.getElementById('loanAmtInput').value = ''; }
     }
-    function addMember() { const n = prompt("Name:"); if(n) { appData.members.push({name: n, payments: new Array(appData.cycles.length*2).fill(false)}); save(); } }
-    function addNewMonth() { const m = document.getElementById('newMonthSelect').value; if(m && !appData.cycles.includes(m)) { appData.cycles.push(m); appData.members.forEach(m => m.payments.push(false, false)); save(); } }
-    function updateSettings() { appData.settings.contri = parseFloat(document.getElementById('setConfigAmount').value); appData.settings.interest = parseFloat(document.getElementById('setConfigInterest').value); save(); alert("Settings Sync'd"); }
-    function resetSystem() { if(confirm("Permanently wipe cloud?")) { db.collection("system").doc("main").delete().then(()=>location.reload()); } }
+    function addMember() { const n = prompt("Exact Google Name:"); if(n) { appData.members.push({name: n, payments: new Array(appData.cycles.length*2).fill(false)}); save(); } }
+    function addNewMonth() { const m = document.getElementById('newMonthSelect').value; if(!appData.cycles.includes(m)) { appData.cycles.push(m); appData.members.forEach(m => m.payments.push(false, false)); save(); } }
+    function updateSettings() { appData.settings.contri = parseFloat(document.getElementById('setConfigAmount').value); appData.settings.interest = parseFloat(document.getElementById('setConfigInterest').value); save(); alert("Synced"); }
+    function resetSystem() { if(confirm("Wipe Cloud?")) { db.collection("system").doc("main").delete().then(()=>location.reload()); } }
     function toggleLoanInputs() { document.getElementById('memberInputs').classList.toggle('d-none', document.getElementById('loanType').value !== 'member'); document.getElementById('nonInputs').classList.toggle('d-none', document.getElementById('loanType').value !== 'non'); }
     function save() { db.collection("system").doc("main").set(appData); }
 </script>
