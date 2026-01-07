@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PH Sinking Fund System - Transparency Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { --primary-blue: #003366; --danger-red: #dc3545; --success-green: #198754; }
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background-color: var(--primary-blue); }
+        .card { border-radius: 15px; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .unpaid-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; background-color: #ffe5e5; color: var(--danger-red); border: 1px solid var(--danger-red); font-weight: bold; }
+        #loginPage, #adminDashboard, #memberDashboard { display: none; }
+        .history-item { border-left: 3px solid var(--success-green); margin-bottom: 10px; padding-left: 15px; }
+        .history-item.unpaid { border-left: 3px solid #dee2e6; color: #adb5bd; }
+        .transparency-card { background: linear-gradient(135deg, #003366, #00509d); color: white; }
+        .table-responsive { max-height: 400px; }
+    </style>
+</head>
+<body>
+
+<div id="loginPage" class="container py-5">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-4">
+            <div class="card p-4 text-center shadow-lg">
+                <h3 class="fw-bold text-primary mb-4">SF System Login</h3>
+                <div class="mb-3 text-start"><label class="form-label">User Access</label><select id="loginRole" class="form-select"></select></div>
+                <div class="mb-3 text-start"><label class="form-label">PIN</label><input type="password" id="loginPass" class="form-control" placeholder="1234"></div>
+                <button class="btn btn-primary w-100 py-2" onclick="handleLogin()">ENTER DASHBOARD</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<nav id="topNav" class="navbar navbar-dark mb-4 d-none">
+    <div class="container d-flex justify-content-between">
+        <span class="navbar-brand fw-bold">🇵🇭 SF Transparency Pro</span>
+        <button class="btn btn-outline-light btn-sm" onclick="location.reload()">LOGOUT</button>
+    </div>
+</nav>
+
+<div id="adminDashboard" class="container">
+    <div class="row mb-4 g-3 text-white">
+        <div class="col-md-4"><div class="card p-3 bg-primary"><h6>Group Total Fund</h6><h2 id="admTotalColl">₱0</h2></div></div>
+        <div class="col-md-4"><div class="card p-3 bg-danger"><h6>Active Loans</h6><h2 id="admTotalLoans">₱0</h2></div></div>
+        <div class="col-md-4"><div class="card p-3 bg-success"><h6>Cash Available</h6><h2 id="admCashHand">₱0</h2></div></div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12 mb-4">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <h5 class="fw-bold mb-0">Admin Master Ledger</h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="addMember()">+ Add Member</button>
+                        <select id="newMonthSelect" class="form-select form-select-sm" style="width: 100px;">
+                            <option value="Jan">Jan</option><option value="Feb">Feb</option><option value="Mar">Mar</option>
+                            <option value="Apr">Apr</option><option value="May">May</option><option value="Jun">Jun</option>
+                            <option value="Jul">Jul</option><option value="Aug">Aug</option><option value="Sep">Sep</option>
+                            <option value="Oct">Oct</option><option value="Nov">Nov</option><option value="Dec">Dec</option>
+                        </select>
+                        <button class="btn btn-sm btn-success" onclick="addNewMonth()">+ Month</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead id="tableHead" class="table-light"></thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card p-4 border-top border-danger border-4 h-100">
+                <h5 class="fw-bold text-danger mb-3">Release Loan</h5>
+                <select id="loanType" class="form-select mb-2" onchange="toggleLoanInputs()">
+                    <option value="member">To Member</option>
+                    <option value="non">To Non-Member</option>
+                </select>
+                <div id="memberInputs"><select id="loanMemberSelect" class="form-select mb-2"></select></div>
+                <div id="nonInputs" class="d-none">
+                    <input type="text" id="nonName" class="form-control mb-2" placeholder="Non-member Name">
+                    <input type="text" id="nonContact" class="form-control mb-2" placeholder="Contact Details">
+                </div>
+                <input type="number" id="loanAmtInput" class="form-control mb-3" placeholder="Amount (₱)">
+                <button class="btn btn-danger w-100 fw-bold" onclick="releaseLoan()">APPROVE LOAN</button>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card p-4 h-100">
+                <h5 class="fw-bold text-primary mb-3">Active Loans</h5>
+                <div id="loanLedgerList" style="max-height: 250px; overflow-y: auto;"></div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card p-4 border-top border-dark border-4 h-100">
+                <h5 class="fw-bold mb-3">Settings</h5>
+                <label class="small fw-bold">Contribution Amount</label>
+                <input type="number" id="setConfigAmount" class="form-control form-control-sm mb-2">
+                <label class="small fw-bold">Interest Rate (%)</label>
+                <input type="number" id="setConfigInterest" class="form-control form-control-sm mb-3">
+                <button class="btn btn-dark btn-sm w-100 mb-2" onclick="updateSettings()">Save Settings</button>
+                <button class="btn btn-outline-danger btn-sm w-100" onclick="resetSystem()">Reset Entire System</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="memberDashboard" class="container">
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card p-4 transparency-card shadow-lg mb-4 text-center">
+                <h2 id="mDashName" class="fw-bold mb-1"></h2>
+                <p class="opacity-75 small">Member Account Overview</p>
+                <hr class="bg-white">
+                <div class="mb-3">
+                    <small class="opacity-75">Your Total Contribution</small>
+                    <h2 id="mDashContri">₱0</h2>
+                </div>
+                <div class="mb-1">
+                    <small class="opacity-75">Current Debt (inc. Interest)</small>
+                    <h3 id="mDashLoan" class="text-warning">₱0</h3>
+                </div>
+            </div>
+            
+            <div class="card p-4 bg-white shadow-sm border-start border-primary border-5">
+                <h6 class="fw-bold">Transparency Info</h6>
+                <p class="small text-muted mb-0">Group Interest: <span id="mSetInt"></span>%</p>
+                <p class="small text-muted mb-0">Contribution: ₱<span id="mSetAmt"></span>/cutoff</p>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card p-4 shadow-sm h-100">
+                <h5 class="fw-bold mb-3">Your Payment History</h5>
+                <div id="paymentTimeline" style="max-height: 500px; overflow-y: auto;">
+                    </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3">
+            <div class="card p-4 shadow-sm mb-4">
+                <h6 class="fw-bold">Fund Transparency</h6>
+                <hr>
+                <div class="mb-3 text-center">
+                    <small class="text-muted d-block">Group Interest Profit</small>
+                    <h4 class="text-success" id="mGroupProfit">₱0</h4>
+                </div>
+                <div class="text-center">
+                    <small class="text-muted d-block">Active Loans in Group</small>
+                    <h4 class="text-danger" id="mGroupLoans">₱0</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- DATABASE ---
+    let settings = JSON.parse(localStorage.getItem('sf_v7_settings')) || { contri: 100, interest: 5 };
+    let members = JSON.parse(localStorage.getItem('sf_v7_members')) || [
+        { name: "Juan Dela Cruz", payments: [true, true, false, false] },
+        { name: "Maria Clara", payments: [true, false, false, false] }
+    ];
+    let cycles = JSON.parse(localStorage.getItem('sf_v7_cycles')) || ["Jan", "Feb"];
+    let loans = JSON.parse(localStorage.getItem('sf_v7_loans')) || [];
+    let profit = JSON.parse(localStorage.getItem('sf_v7_profit')) || 0;
+
+    const today = new Date();
+    const currentDay = today.getDate();
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const currentMonthLabel = monthNames[today.getMonth()];
+
+    // --- AUTH ---
+    function handleLogin() {
+        if(document.getElementById('loginPass').value === "1234") {
+            const role = document.getElementById('loginRole').value;
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('topNav').classList.remove('d-none');
+            if(role === 'admin') { 
+                document.getElementById('adminDashboard').style.display = 'block'; 
+                renderAdmin(); 
+            } else { 
+                document.getElementById('memberDashboard').style.display = 'block'; 
+                renderMember(role); 
+            }
+        } else { alert("Wrong PIN"); }
+    }
+
+    // --- ADMIN ---
+    function updateSettings() {
+        settings.contri = parseFloat(document.getElementById('setConfigAmount').value);
+        settings.interest = parseFloat(document.getElementById('setConfigInterest').value);
+        renderAdmin();
+        alert("Settings Saved!");
+    }
+
+    function toggleLoanInputs() {
+        const type = document.getElementById('loanType').value;
+        document.getElementById('memberInputs').classList.toggle('d-none', type !== 'member');
+        document.getElementById('nonInputs').classList.toggle('d-none', type !== 'non');
+    }
+
+    function renderAdmin() {
+        document.getElementById('setConfigAmount').value = settings.contri;
+        document.getElementById('setConfigInterest').value = settings.interest;
+
+        const head = document.getElementById('tableHead');
+        let h1 = '<tr><th>Member</th>';
+        let h2 = '<tr><td></td>';
+        cycles.forEach(c => {
+            h1 += `<th colspan="2" class="text-center">${c}</th>`;
+            h2 += `<th class="text-center small py-1">15th</th><th class="text-center small py-1">30th</th>`;
+        });
+        head.innerHTML = h1 + '<th>Total</th></tr>' + h2 + '<td></td></tr>';
+
+        const body = document.getElementById('tableBody');
+        body.innerHTML = '';
+        let totalColl = 0;
+        const lSelect = document.getElementById('loanMemberSelect');
+        lSelect.innerHTML = '<option value="">Borrower...</option>';
+
+        members.forEach((m, mIdx) => {
+            let mSum = 0;
+            let badge = '';
+            const cycleIdx = cycles.indexOf(currentMonthLabel);
+            if(cycleIdx !== -1) {
+                const p15 = m.payments[cycleIdx * 2];
+                if(currentDay > 15 && !p15) badge = '<br><span class="unpaid-badge">LATE 15th</span>';
+            }
+
+            let cells = `<td><b>${m.name}</b>${badge}</td>`;
+            m.payments.forEach((p, pIdx) => {
+                if(p) mSum += settings.contri;
+                cells += `<td class="text-center"><input type="checkbox" ${p?'checked':''} onclick="togglePay(${mIdx},${pIdx})"></td>`;
+            });
+            totalColl += mSum;
+            body.innerHTML += `<tr>${cells}<td class="fw-bold">₱${mSum}</td></tr>`;
+            lSelect.innerHTML += `<option value="${m.name}">${m.name}</option>`;
+        });
+
+        const list = document.getElementById('loanLedgerList');
+        list.innerHTML = '';
+        let activeLoanVal = 0;
+        loans.forEach((l, idx) => {
+            activeLoanVal += l.principal;
+            const due = l.principal + (l.principal * (settings.interest/100));
+            list.innerHTML += `
+                <div class="p-2 border-bottom mb-2 bg-light rounded">
+                    <div class="d-flex justify-content-between">
+                        <small><b>${l.borrower}</b></small>
+                        <button class="btn btn-sm btn-success py-0 px-2" onclick="collectLoan(${idx})">Paid</button>
+                    </div>
+                    <div class="small text-danger fw-bold">₱${due.toLocaleString()}</div>
+                </div>`;
+        });
+
+        document.getElementById('admTotalColl').innerText = `₱${(totalColl + profit).toLocaleString()}`;
+        document.getElementById('admTotalLoans').innerText = `₱${activeLoanVal.toLocaleString()}`;
+        document.getElementById('admCashHand').innerText = `₱${(totalColl + profit - activeLoanVal).toLocaleString()}`;
+        save();
+    }
+
+    function togglePay(mIdx, pIdx) { members[mIdx].payments[pIdx] = !members[mIdx].payments[pIdx]; renderAdmin(); }
+
+    function releaseLoan() {
+        const type = document.getElementById('loanType').value;
+        const amt = parseFloat(document.getElementById('loanAmtInput').value);
+        if(isNaN(amt)) return alert("Enter amount");
+        
+        let borrower = "";
+        if(type === 'member') {
+            borrower = document.getElementById('loanMemberSelect').value;
+        } else {
+            borrower = document.getElementById('nonName').value + " (" + document.getElementById('nonContact').value + ")";
+        }
+        
+        if(!borrower) return alert("Missing details");
+        loans.push({ borrower, principal: amt });
+        document.getElementById('loanAmtInput').value = '';
+        renderAdmin();
+    }
+
+    function collectLoan(idx) {
+        profit += (loans[idx].principal * (settings.interest/100));
+        loans.splice(idx, 1);
+        renderAdmin();
+    }
+
+    function addNewMonth() { cycles.push(document.getElementById('newMonthSelect').value); members.forEach(m => m.payments.push(false, false)); renderAdmin(); }
+    function addMember() { const n = prompt("Name:"); if(n) { members.push({name: n, payments: new Array(cycles.length*2).fill(false)}); renderAdmin(); initRoles(); } }
+    function resetSystem() { if(confirm("ARE YOU SURE? This deletes ALL history and settings!")) { localStorage.clear(); location.reload(); } }
+
+    // --- MEMBER DASHBOARD ---
+    function renderMember(name) {
+        const member = members.find(m => m.name === name);
+        const mLoan = loans.find(l => l.borrower === name);
+        let saved = 0;
+        
+        document.getElementById('mDashName').innerText = name;
+        document.getElementById('mSetInt').innerText = settings.interest;
+        document.getElementById('mSetAmt').innerText = settings.contri;
+
+        // Timeline History Logic
+        const timeline = document.getElementById('paymentTimeline');
+        timeline.innerHTML = '';
+        
+        member.payments.forEach((p, idx) => {
+            const cycleName = cycles[Math.floor(idx / 2)];
+            const date = idx % 2 === 0 ? "15th" : "30th";
+            if(p) saved += settings.contri;
+
+            const div = document.createElement('div');
+            div.className = `history-item ${p ? '' : 'unpaid'}`;
+            div.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>${cycleName} ${date} Contribution</span>
+                    <span class="fw-bold">${p ? '₱'+settings.contri : 'NOT PAID'}</span>
+                </div>
+                <small>${p ? '✓ Transaction Recorded' : 'Pending payment'}</small>
+            `;
+            timeline.prepend(div); // Newest at top
+        });
+
+        document.getElementById('mDashContri').innerText = `₱${saved}`;
+        document.getElementById('mDashLoan').innerText = mLoan ? `₱${(mLoan.principal * (1+(settings.interest/100))).toLocaleString()}` : "₱0";
+        document.getElementById('mGroupProfit').innerText = `₱${profit.toLocaleString()}`;
+        
+        let totalActiveLoans = 0;
+        loans.forEach(l => totalActiveLoans += l.principal);
+        document.getElementById('mGroupLoans').innerText = `₱${totalActiveLoans.toLocaleString()}`;
+    }
+
+    function save() {
+        localStorage.setItem('sf_v7_settings', JSON.stringify(settings));
+        localStorage.setItem('sf_v7_members', JSON.stringify(members));
+        localStorage.setItem('sf_v7_cycles', JSON.stringify(cycles));
+        localStorage.setItem('sf_v7_loans', JSON.stringify(loans));
+        localStorage.setItem('sf_v7_profit', JSON.stringify(profit));
+    }
+
+    function initRoles() {
+        const s = document.getElementById('loginRole');
+        s.innerHTML = '<option value="admin">Administrator</option>';
+        members.forEach(m => s.innerHTML += `<option value="${m.name}">${m.name}</option>`);
+    }
+
+    initRoles();
+    document.getElementById('loginPage').style.display = 'block';
+</script>
+</body>
+</html>
