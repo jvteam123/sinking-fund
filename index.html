@@ -9,7 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/dots/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --primary: #0d6efd; --accent: #ff7e14; --bg: #f8fafc; --sidebar: #ffffff; --member-grad: linear-gradient(135deg, #0f172a, #1e293b); --success-green: #10b981; }
         body { background-color: var(--bg); color: #1e293b; font-family: 'Inter', 'Segoe UI', sans-serif; letter-spacing: -0.01em; }
@@ -165,9 +165,13 @@
                     <div class="col-6"><label class="small text-muted fw-bold">INTEREST RATE %</label><input type="number" id="setConfigInterest" class="form-control"></div>
                 </div>
                 <button class="btn btn-dark w-100 mb-3 py-2 fw-bold" onclick="updateSettings()">SAVE SETTINGS</button>
+                
                 <div class="d-grid gap-2 mb-2">
-                    <button class="btn btn-sm btn-success fw-bold" onclick="exportFullSpreadsheet()"><i class="fas fa-file-excel me-2"></i>EXPORT SPREADSHEET</button>
+                    <button class="btn btn-sm btn-success fw-bold" onclick="exportFullSpreadsheet()">
+                        <i class="fas fa-file-excel me-2"></i>EXPORT SPREADSHEET
+                    </button>
                 </div>
+
                 <div class="d-flex gap-2">
                     <button class="btn btn-sm btn-light border w-50" onclick="exportBackup()">JSON EXPORT</button>
                     <label class="btn btn-sm btn-light border w-50 m-0 text-center">IMPORT<input type="file" id="importFile" hidden onchange="importBackup()"></label>
@@ -289,13 +293,28 @@
                 } else {
                     save();
                 }
+
+                const userEmail = user.email.toLowerCase();
+                const isAdmin = ADMINS.includes(userEmail);
+                const isMember = appData.members.some(m => m.email.toLowerCase() === userEmail);
+
+                // Authentication Lock
+                if (!isAdmin && !isMember) {
+                    alert(`Unauthorized Access: ${user.email} is not registered in the system.`);
+                    signOut();
+                    return;
+                }
+
                 document.getElementById('topNav').style.display = 'block';
                 document.getElementById('loginPage').style.display = 'none';
-                if (ADMINS.includes(user.email.toLowerCase())) {
+                
+                if (isAdmin) {
                     document.getElementById('adminDashboard').style.display = 'block';
+                    document.getElementById('memberDashboard').style.display = 'none';
                     renderAdmin();
                 } else {
                     document.getElementById('memberDashboard').style.display = 'block';
+                    document.getElementById('adminDashboard').style.display = 'none';
                     renderMember(user);
                 }
             });
@@ -394,10 +413,7 @@
 
     function renderMember(user) {
         const m = appData.members.find(x => x.email.toLowerCase() === user.email.toLowerCase());
-        if(!m) {
-            document.body.innerHTML = `<div class='p-5 text-center'><h4>Account Not Linked</h4><p>Contact admin to enroll ${user.email}</p><button class='btn btn-dark' onclick='signOut()'>Sign Out</button></div>`;
-            return;
-        }
+        if(!m) return;
         
         let totalSystemPrincipal = 0;
         appData.members.forEach(me => {
@@ -444,7 +460,7 @@
             save();
             notify("Ledger Saved");
         } else {
-            renderAdmin(); // Refresh UI to reset checkbox state
+            renderAdmin(); 
         }
     }
 
@@ -586,14 +602,15 @@
         let totalSystemPrincipal = 0;
         appData.members.forEach(m => {
             totalSystemPrincipal += Number(m.carryOver || 0);
-            m.payments.forEach(p => { if(p) totalSystemPrincipal += (appData.settings.contri * m.slots); });
+            m.payments.forEach(p => { if(p) totalSystemPrincipal += (appData.settings.contri * (m.slots || 1)); });
         });
 
         appData.members.forEach(m => {
+            const slots = m.slots || 1;
             let myS = Number(m.carryOver || 0);
-            m.payments.forEach(p => { if(p) myS += (appData.settings.contri * m.slots); });
+            m.payments.forEach(p => { if(p) myS += (appData.settings.contri * slots); });
             let myShare = (totalSystemPrincipal > 0 ? (myS / totalSystemPrincipal * appData.profit) : 0);
-            csv += `"${m.name}","${m.email}",${m.slots},${m.carryOver},${myS},${myShare.toFixed(2)},${(myS + myShare).toFixed(2)}\n`;
+            csv += `"${m.name}","${m.email}",${slots},${m.carryOver},${myS},${myShare.toFixed(2)},${(myS + myShare).toFixed(2)}\n`;
         });
 
         csv += "\n--- DETAILED CONTRIBUTION LEDGER ---\n";
