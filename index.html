@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PH Sinking Fund Cloud v10.12</title>
+    <title>PH Sinking Fund Cloud v10.13</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -17,6 +17,7 @@
         .history-item { border-left: 5px solid var(--success-green); margin-bottom: 12px; padding: 12px; background: white; border-radius: 8px; }
         .history-item.unpaid { border-left-color: #dee2e6; color: #adb5bd; }
         .transparency-card { background: linear-gradient(135deg, #003366 0%, #00509d 100%); color: white; }
+        .table-responsive { max-height: 600px; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -24,7 +25,7 @@
 <div id="loginPage" class="container py-5 mt-5 text-center">
     <div class="card p-5 shadow-lg d-inline-block" style="max-width: 450px; width: 100%;">
         <h2 class="fw-bold text-primary mb-1">SF Cloud</h2>
-        <p class="text-muted mb-4">Secure Authorization System</p>
+        <p class="text-muted mb-4">Secure Authorization v10.13</p>
         <button class="btn btn-outline-dark w-100 py-3 d-flex align-items-center justify-content-center fw-bold mb-3" onclick="signIn()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="22" class="me-3">
             Sign in with Google
@@ -37,7 +38,7 @@
 
 <nav id="topNav" class="navbar navbar-dark mb-4 sticky-top">
     <div class="container d-flex justify-content-between align-items-center">
-        <span class="navbar-brand fw-bold">🇵🇭 SF PRO v10.12</span>
+        <span class="navbar-brand fw-bold">🇵🇭 SF PRO v10.13</span>
         <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="signOut()">Logout</button>
     </div>
 </nav>
@@ -54,7 +55,7 @@
             <h5 class="fw-bold text-primary m-0">Master Ledger</h5>
             <div class="d-flex gap-2">
                 <button class="btn btn-sm btn-primary" onclick="addMember()">+ Add Member</button>
-                <button class="btn btn-sm btn-success" onclick="addNewMonth()">+ Add Month</button>
+                <button class="btn btn-sm btn-success" onclick="suggestNextMonth()">+ Add Next Month</button>
             </div>
         </div>
         <div class="table-responsive">
@@ -74,13 +75,10 @@
                     <option value="non">Loan to Non-Member</option>
                 </select>
                 
-                <div id="memberLoanBox">
-                    <select id="loanMemberSelect" class="form-select mb-2"></select>
-                </div>
-                
+                <div id="memberLoanBox"><select id="loanMemberSelect" class="form-select mb-2"></select></div>
                 <div id="nonMemberLoanBox" class="d-none">
-                    <input type="text" id="nonMemberName" class="form-control mb-2" placeholder="Borrower Name">
-                    <input type="email" id="nonMemberEmail" class="form-control mb-2" placeholder="Borrower Email/Phone">
+                    <input type="text" id="nonMemberName" class="form-control mb-2" placeholder="Borrower Full Name">
+                    <input type="text" id="nonMemberEmail" class="form-control mb-2" placeholder="Email or Phone">
                 </div>
 
                 <input type="number" id="loanAmtInput" class="form-control mb-3" placeholder="Principal Amount (₱)">
@@ -117,11 +115,6 @@
                     <div class="col-6"><small>My Interest</small><h4 id="mDashLoan" class="text-warning fw-bold">₱0</h4></div>
                 </div>
             </div>
-            <div class="card p-3 shadow-sm">
-                <h6 class="fw-bold text-primary">Global Transparency</h6>
-                <div class="d-flex justify-content-between small border-bottom py-2"><span>Group Profit:</span><span id="mGroupProfit" class="text-success fw-bold">₱0</span></div>
-                <div class="d-flex justify-content-between small py-2"><span>Funds in Loan:</span><span id="mGroupLoans" class="text-danger fw-bold">₱0</span></div>
-            </div>
         </div>
         <div class="col-lg-7">
             <div class="card p-4 h-100 shadow-sm">
@@ -147,6 +140,7 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    const monthSequence = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     let appData = { settings: { contri: 100, interest: 5 }, members: [], cycles: ["Jan"], loans: [], profit: 0 };
 
     auth.onAuthStateChanged(user => {
@@ -171,34 +165,35 @@
         }
     });
 
+    function signIn() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).catch(err => alert("Login Blocked: " + err.message));
+    }
+
     function showPage(id) {
         ['loginPage', 'adminDashboard', 'memberDashboard'].forEach(p => {
             document.getElementById(p).style.display = (p === id) ? 'block' : 'none';
         });
     }
 
-    function signIn() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).catch(err => alert("Login Blocked: " + err.message));
-    }
+    function signOut() { auth.signOut().then(() => location.reload()); }
 
-    function manualAdmin() {
-        const pin = prompt("Enter Admin PIN:");
-        if(pin === "1234") {
-            const mockUser = { email: ADMIN_EMAIL, displayName: "Admin User", isAdmin: true };
-            db.collection("system").doc("main").onSnapshot(doc => {
-                if (doc.exists) appData = doc.data();
-                document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('topNav').style.display = 'block';
-                showPage('adminDashboard');
-                renderAdmin();
-            });
+    // --- SMART MONTH LOGIC ---
+    function suggestNextMonth() {
+        const lastMonth = appData.cycles[appData.cycles.length - 1];
+        const lastIndex = monthSequence.indexOf(lastMonth);
+        const nextIndex = (lastIndex + 1) % 12;
+        const suggested = monthSequence[nextIndex];
+
+        const confirmed = prompt(`Add next month?`, suggested);
+        if(confirmed) {
+            appData.cycles.push(confirmed);
+            appData.members.forEach(m => m.payments.push(false, false));
+            save();
         }
     }
 
-    function signOut() { auth.signOut().then(() => location.reload()); }
-
-    // --- ADMIN DASHBOARD RENDERING ---
+    // --- ADMIN RENDERING ---
     function renderAdmin() {
         document.getElementById('setConfigAmount').value = appData.settings.contri;
         document.getElementById('setConfigInterest').value = appData.settings.interest;
@@ -241,14 +236,14 @@
         document.getElementById('admProfit').innerText = `₱${appData.profit.toLocaleString()}`;
     }
 
-    // --- MEMBER DASHBOARD RENDERING ---
+    // --- MEMBER DASHBOARD ---
     function renderMember(user) {
         const member = appData.members.find(m => m.email.toLowerCase() === user.email.toLowerCase());
         document.getElementById('mDashName').innerText = user.displayName;
         document.getElementById('mDashEmail').innerText = user.email;
         
         if(!member) {
-            document.getElementById('paymentTimeline').innerHTML = `<div class='alert alert-danger'>Access Denied. Your email (${user.email}) is not registered in the system.</div>`;
+            document.getElementById('paymentTimeline').innerHTML = `<div class='alert alert-danger'>Email Not Registered. Contact Admin.</div>`;
             return;
         }
         
@@ -266,64 +261,35 @@
         const myLoan = appData.loans.find(l => l.borrower === member.name);
         document.getElementById('mDashContri').innerText = `₱${saved.toLocaleString()}`;
         document.getElementById('mDashLoan').innerText = myLoan ? `₱${(myLoan.principal * (appData.settings.interest/100)).toLocaleString()}` : "₱0";
-        document.getElementById('mGroupProfit').innerText = `₱${appData.profit.toLocaleString()}`;
-        let totalActiveLoans = 0; appData.loans.forEach(l => totalActiveLoans += l.principal);
-        document.getElementById('mGroupLoans').innerText = `₱${totalActiveLoans.toLocaleString()}`;
     }
 
-    // --- ACTIONS ---
+    // --- CORE ACTIONS ---
     function toggleLoanType() {
         const type = document.getElementById('loanTypeSelect').value;
         document.getElementById('memberLoanBox').classList.toggle('d-none', type !== 'member');
         document.getElementById('nonMemberLoanBox').classList.toggle('d-none', type !== 'non');
     }
 
+    function addMember() { 
+        const name = prompt("Enter Member Name:");
+        const email = prompt("Enter Authorized Google Email:");
+        if(name && email) { 
+            appData.members.push({ name: name, email: email.trim().toLowerCase(), payments: new Array(appData.cycles.length*2).fill(false) }); 
+            save(); 
+        } 
+    }
+
     function releaseLoan() {
         const type = document.getElementById('loanTypeSelect').value;
         const amt = parseFloat(document.getElementById('loanAmtInput').value);
-        let borrowerName = "";
-        let info = "";
+        let name = type === 'member' ? document.getElementById('loanMemberSelect').value : document.getElementById('nonMemberName').value;
+        let info = type === 'non' ? document.getElementById('nonMemberEmail').value : "";
 
-        if(type === 'member') {
-            borrowerName = document.getElementById('loanMemberSelect').value;
-        } else {
-            borrowerName = document.getElementById('nonMemberName').value;
-            info = document.getElementById('nonMemberEmail').value;
-        }
-
-        if(amt && borrowerName) {
-            appData.loans.push({ 
-                borrower: borrowerName, 
-                principal: amt, 
-                type: type === 'non' ? 'External' : 'Member',
-                contact: info 
-            });
+        if(amt && name) {
+            appData.loans.push({ borrower: name, principal: amt, type: type === 'non' ? 'External' : 'Member', contact: info });
             save();
             document.getElementById('loanAmtInput').value = '';
-            document.getElementById('nonMemberName').value = '';
-        } else { alert("Missing borrower or amount!"); }
-    }
-
-    function addMember() { 
-        const name = prompt("Enter Member Name:");
-        const email = prompt("Enter Google Email for authorization:");
-        if(name && email) { 
-            appData.members.push({
-                name: name, 
-                email: email.trim(), 
-                payments: new Array(appData.cycles.length*2).fill(false)
-            }); 
-            save(); 
-        } 
-    }
-
-    function addNewMonth() { 
-        const m = prompt("Enter Month (e.g., Feb):"); 
-        if(m && !appData.cycles.includes(m)) { 
-            appData.cycles.push(m); 
-            appData.members.forEach(m => m.payments.push(false, false)); 
-            save(); 
-        } 
+        }
     }
 
     function togglePay(mIdx, pIdx) { appData.members[mIdx].payments[pIdx] = !appData.members[mIdx].payments[pIdx]; save(); }
@@ -335,10 +301,21 @@
     function updateSettings() { 
         appData.settings.contri = parseFloat(document.getElementById('setConfigAmount').value); 
         appData.settings.interest = parseFloat(document.getElementById('setConfigInterest').value);
-        save(); 
-        alert("Synced to Cloud"); 
+        save(); alert("Cloud Updated"); 
     }
-    function resetSystem() { if(confirm("DELETE ALL DATA?")) { db.collection("system").doc("main").delete().then(()=>location.reload()); } }
+    function manualAdmin() {
+        const pin = prompt("Admin PIN:");
+        if(pin === "1234") {
+            db.collection("system").doc("main").get().then(doc => {
+                appData = doc.data();
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('topNav').style.display = 'block';
+                showPage('adminDashboard');
+                renderAdmin();
+            });
+        }
+    }
+    function resetSystem() { if(confirm("WIPE CLOUD?")) { db.collection("system").doc("main").delete().then(()=>location.reload()); } }
     function save() { db.collection("system").doc("main").set(appData); }
 </script>
 </body>
