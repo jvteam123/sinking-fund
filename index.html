@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PH Sinking Fund Cloud v10.16</title>
+    <title>PH Sinking Fund Cloud v10.17</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -25,7 +25,7 @@
 <div id="loginPage" class="container py-5 mt-5 text-center">
     <div class="card p-5 shadow-lg d-inline-block" style="max-width: 400px; width: 100%;">
         <h2 class="fw-bold text-primary mb-1">SF Cloud</h2>
-        <p class="text-muted mb-4">v10.16 Secure Admin Build</p>
+        <p class="text-muted mb-4">v10.17 Final Maintenance Build</p>
         <button class="btn btn-outline-dark w-100 py-3 d-flex align-items-center justify-content-center fw-bold mb-3" onclick="signIn()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="22" class="me-3">
             Sign in with Google
@@ -36,7 +36,7 @@
 
 <nav id="topNav" class="navbar navbar-dark mb-4 sticky-top">
     <div class="container d-flex justify-content-between">
-        <span class="navbar-brand fw-bold">🇵🇭 SF PRO v10.16</span>
+        <span class="navbar-brand fw-bold">🇵🇭 SF PRO v10.17</span>
         <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="signOut()">Logout</button>
     </div>
 </nav>
@@ -45,7 +45,7 @@
     <div class="row mb-4 g-3 text-white text-center">
         <div class="col-md-4"><div class="card p-3 bg-primary"><h6>Total Fund</h6><h2 id="admTotalColl">₱0</h2></div></div>
         <div class="col-md-4"><div class="card p-3 bg-danger"><h6>Active Loans</h6><h2 id="admTotalLoans">₱0</h2></div></div>
-        <div class="col-md-4"><div class="card p-3 bg-success"><h6>Profit</h6><h2 id="admProfit">₱0</h2></div></div>
+        <div class="col-md-4"><div class="card p-3 bg-success"><h6>Total Profit</h6><h2 id="admProfit">₱0</h2></div></div>
     </div>
 
     <div class="card p-4 mb-4">
@@ -98,7 +98,6 @@
                 <label class="small fw-bold">Interest Rate (%)</label>
                 <input type="number" id="setConfigInterest" class="form-control mb-3">
                 <button class="btn btn-dark w-100 mb-3" onclick="updateSettings()">Save Settings</button>
-                
                 <hr>
                 <h6 class="small fw-bold text-danger">Security Maintenance</h6>
                 <button class="btn btn-outline-warning btn-sm w-100 mb-2" onclick="resetMonthsToDefault()">Reset Months (Keep Members)</button>
@@ -165,36 +164,36 @@
         } else { showPage('loginPage'); }
     });
 
-    // --- SECURE WIPE LOGIC ---
+    // --- SECURE WIPE FIX ---
     function secureSystemWipe() {
-        const pin = prompt("CRITICAL: Enter Wipe PIN to erase ALL data (Members, Payments, Loans, Profit):");
+        const pin = prompt("CRITICAL: Enter Wipe PIN (248617) to erase ALL data and zero out PROFIT:");
         if (pin === WIPE_PIN) {
-            if (confirm("FINAL WARNING: This will permanently delete everything and reset to defaults. Continue?")) {
+            if (confirm("This will zero out profit, loans, members, and collection history. Continue?")) {
                 appData = { 
                     settings: { contri: 100, interest: 5 }, 
                     members: [], 
                     cycles: ["Jan"], 
                     loans: [], 
-                    profit: 0 
+                    profit: 0 // Resetting profit to zero
                 };
                 save();
-                alert("System fully reset to factory settings.");
+                alert("Database and Profit have been zeroed out.");
                 location.reload();
             }
         } else if (pin !== null) {
-            alert("Incorrect PIN. Access Denied.");
+            alert("Incorrect PIN.");
         }
     }
 
     function resetMonthsToDefault() {
-        if(confirm("Reset all months back to Jan? (This keeps your member list but clears all payment history)")) {
+        if(confirm("Reset all months back to Jan? (This keeps your members but clears payments)")) {
             appData.cycles = ["Jan"];
             appData.members.forEach(m => m.payments = [false, false]);
             save();
         }
     }
 
-    // --- RENDER & SAVE ---
+    // --- ADMIN LOGIC ---
     function renderAdmin() {
         document.getElementById('setConfigAmount').value = appData.settings.contri;
         document.getElementById('setConfigInterest').value = appData.settings.interest;
@@ -237,7 +236,7 @@
 
         document.getElementById('admTotalColl').innerText = `₱${totalSavings.toLocaleString()}`;
         document.getElementById('admTotalLoans').innerText = `₱${loanVal.toLocaleString()}`;
-        document.getElementById('admProfit').innerText = `₱${appData.profit.toLocaleString()}`;
+        document.getElementById('admProfit').innerText = `₱${(appData.profit || 0).toLocaleString()}`;
     }
 
     function renderMember(user) {
@@ -265,7 +264,11 @@
     function togglePay(mIdx, pIdx) { appData.members[mIdx].payments[pIdx] = !appData.members[mIdx].payments[pIdx]; save(); }
     function addMember() { const n = prompt("Name:"); const e = prompt("Email:"); if(n && e) { appData.members.push({ name: n, email: e.trim().toLowerCase(), locked: false, payments: new Array(appData.cycles.length*2).fill(false) }); save(); } }
     function releaseLoan() { const type = document.getElementById('loanTypeSelect').value; const amt = parseFloat(document.getElementById('loanAmtInput').value); let name = type === 'member' ? document.getElementById('loanMemberSelect').value : document.getElementById('nonMemberName').value; if(amt && name) { appData.loans.push({ borrower: name, principal: amt }); save(); document.getElementById('loanAmtInput').value = ''; } }
-    function collectLoan(idx) { appData.profit += (appData.loans[idx].principal * (appData.settings.interest/100)); appData.loans.splice(idx, 1); save(); }
+    function collectLoan(idx) { 
+        appData.profit = (appData.profit || 0) + (appData.loans[idx].principal * (appData.settings.interest/100)); 
+        appData.loans.splice(idx, 1); 
+        save(); 
+    }
     function suggestNextMonth() { const lastMonth = appData.cycles[appData.cycles.length - 1]; const nextMonth = monthSequence[(monthSequence.indexOf(lastMonth) + 1) % 12]; const val = prompt("Add Month:", nextMonth); if(val) { appData.cycles.push(val); appData.members.forEach(m => m.payments.push(false, false)); save(); } }
     function updateSettings() { appData.settings.contri = parseFloat(document.getElementById('setConfigAmount').value); appData.settings.interest = parseFloat(document.getElementById('setConfigInterest').value); save(); alert("Updated!"); }
     function toggleLoanType() { document.getElementById('memberLoanBox').classList.toggle('d-none', document.getElementById('loanTypeSelect').value !== 'member'); document.getElementById('nonMemberLoanBox').classList.toggle('d-none', document.getElementById('loanTypeSelect').value !== 'non'); }
