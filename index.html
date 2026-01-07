@@ -112,7 +112,7 @@
             <div class="card p-4 border-top border-4 border-primary">
                 <div class="section-title text-primary">Membership Actions</div>
                 <button class="btn btn-primary w-100 mb-2 py-2 fw-bold rounded-3" onclick="addMember()">ENROLL MEMBER</button>
-                <button class="btn btn-outline-dark w-100 py-2 fw-bold rounded-3" onclick="openMemberManager()">MEMBER DIRECTORY</button>
+                <button class="btn btn-outline-dark w-100 py-2 fw-bold rounded-3" onclick="openMemberManager()">MEMBER LIST</button>
             </div>
 
             <div class="card p-4">
@@ -127,24 +127,24 @@
             <div class="card p-4 border-top border-4 border-danger">
                 <div class="section-title text-danger">Lending Desk</div>
                 <select id="loanTypeSelect" class="form-select mb-2" onchange="toggleLoanInputs()">
-                    <option value="member">Corporate Member</option><option value="guest">External Guest</option>
+                    <option value="member">Corporate Member</option><option value="guest">Guest</option>
                 </select>
                 <div id="memberSelectWrap"><select id="loanMemberSelect" class="form-select mb-2"></select></div>
-                <div id="guestInputWrap" class="d-none"><input type="text" id="guestNameInput" class="form-control mb-2" placeholder="Entity Name"></div>
+                <div id="guestInputWrap" class="d-none"><input type="text" id="guestNameInput" class="form-control mb-2" placeholder="Name"></div>
                 <div class="input-group mb-2">
                     <span class="input-group-text">₱</span>
                     <input type="number" id="loanAmtInput" class="form-control" placeholder="Principal Amount">
                 </div>
-                <button class="btn btn-danger w-100 py-2 fw-bold rounded-3" onclick="releaseLoan()">APPROVE DISBURSEMENT</button>
+                <button class="btn btn-danger w-100 py-2 fw-bold rounded-3" onclick="releaseLoan()">APPROVE LOAN</button>
             </div>
 
             <div class="card p-4">
-                <div class="section-title">Global Parameters</div>
+                <div class="section-title">Global SETTINGS</div>
                 <div class="row g-2 mb-3">
                     <div class="col-6"><label class="small text-muted fw-bold">CONTRIBUTION</label><input type="number" id="setConfigAmount" class="form-control"></div>
                     <div class="col-6"><label class="small text-muted fw-bold">INTEREST RATE %</label><input type="number" id="setConfigInterest" class="form-control"></div>
                 </div>
-                <button class="btn btn-dark w-100 mb-3 py-2 fw-bold" onclick="updateSettings()">SAVE PARAMETERS</button>
+                <button class="btn btn-dark w-100 mb-3 py-2 fw-bold" onclick="updateSettings()">SAVE SETTINGS</button>
                 <button class="btn btn-link btn-sm text-danger w-100 text-decoration-none fw-bold" onclick="secureSystemWipe()">SYSTEM HARD RESET</button>
             </div>
         </div>
