@@ -32,12 +32,40 @@
         .ledger-wrapper { overflow: auto; max-height: 500px; border-radius: 12px; border: 1px solid #f1f5f9; }
         .table thead th { background: #f8fafc; color: #475569; font-weight: 600; font-size: 0.7rem; border-bottom: 2px solid #f1f5f9; }
         
-        .loan-item { padding: 1.25rem; border: 1px solid #f1f5f9; border-radius: 16px; margin-bottom: 1rem; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-left: 5px solid #dc2626; }
-        .loan-user { font-weight: 800; color: #0f172a; font-size: 1rem; }
-        .loan-detail-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 6px; margin-top: 10px; font-size: 0.75rem; background: #f8fafc; padding: 10px; border-radius: 8px; }
-        .loan-label { color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.65rem; }
-        .loan-val { color: #1e293b; font-weight: 700; text-align: right; }
+        /* Loan Card Styling from Image */
+        .loan-card-styled { 
+            background: #fff; 
+            border: 1px solid #f1f1f1; 
+            border-radius: 20px; 
+            padding: 25px; 
+            position: relative; 
+            border-left: 6px solid #d93025; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            margin-bottom: 1.5rem;
+        }
+        .loan-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .loan-name { font-weight: 900; font-size: 1.4rem; color: #1a1a1a; margin: 0; }
+        .loan-ref { font-size: 0.75rem; color: #70757a; margin-bottom: 20px; }
+        .loan-status-badge { 
+            background: #ea4335; 
+            color: white; 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            font-size: 0.7rem; 
+            font-weight: 900; 
+            letter-spacing: 0.5px;
+        }
+        .loan-data-container { background: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
+        .loan-data-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.75rem; }
+        .loan-data-label { color: #5f6368; font-weight: 600; text-transform: uppercase; }
+        .loan-data-value { color: #202124; font-weight: 800; }
+        .loan-divider { height: 1px; background: #dadce0; margin: 12px 0; }
+        .loan-total-label { font-weight: 700; color: #5f6368; text-transform: uppercase; font-size: 0.75rem; }
+        .loan-total-value { font-weight: 900; color: #d93025; font-size: 1.2rem; }
         
+        .btn-partial { border: 2px solid #1a73e8; color: #1a73e8; background: transparent; border-radius: 8px; font-weight: 800; font-size: 0.85rem; padding: 10px; width: 100%; text-transform: uppercase; }
+        .btn-settle { background: #188038; color: white; border: none; border-radius: 8px; font-weight: 800; font-size: 0.85rem; padding: 10px; width: 100%; text-transform: uppercase; }
+
         .log-entry { font-size: 0.7rem; padding: 10px; border-bottom: 1px solid #f1f5f9; }
         .log-meta { display: flex; justify-content: space-between; font-weight: 700; font-size: 0.65rem; margin-bottom: 3px; }
         .log-time { color: #64748b; }
@@ -83,8 +111,8 @@
 <div id="adminDashboard" class="container-fluid py-4 px-lg-5" style="display:none">
     <div class="row g-3 mb-4">
         <div class="col-md-3"><div class="stat-card bg-cash"><h6>Cash On Hand</h6><h3 class="fw-bold" id="admCash">₱0</h3></div></div>
-        <div class="col-md-3"><div class="stat-card bg-loans"><h6>Accounts Receivable</h6><h3 class="fw-bold" id="admLoans">₱0</h3></div></div>
-        <div class="col-md-3"><div class="stat-card bg-profit"><h6>Retained Earnings</h6><h3 class="fw-bold" id="admProfit">₱0</h3></div></div>
+        <div class="col-md-3"><div class="stat-card bg-loans"><h6>Amounts Loan</h6><h3 class="fw-bold" id="admLoans">₱0</h3></div></div>
+        <div class="col-md-3"><div class="stat-card bg-profit"><h6>Loan Earnings</h6><h3 class="fw-bold" id="admProfit">₱0</h3></div></div>
         <div class="col-md-3"><div class="stat-card bg-pool"><h6>Asset Valuation</h6><h3 class="fw-bold" id="admPool">₱0</h3></div></div>
     </div>
 
@@ -99,16 +127,16 @@
                 <div class="ledger-wrapper"><table class="table text-center align-middle mb-0"><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table></div>
             </div>
             <div class="row g-4">
-                <div class="col-md-6">
+                <div class="col-md-7">
                     <div class="card p-4">
-                        <div class="section-title"><i class="fas fa-file-invoice-dollar me-2"></i>Detailed Active Loans</div>
-                        <div id="loanLedgerList" style="max-height: 500px; overflow-y: auto; padding-right: 5px;"></div>
+                        <div class="section-title text-primary fw-bolder" style="background: #e8f0fe; padding: 5px 10px; border-radius: 4px; display: inline-block;"><i class="fas fa-file-invoice-dollar me-2"></i>DETAILED ACTIVE LOANS</div>
+                        <div id="loanLedgerList" class="mt-3" style="max-height: 600px; overflow-y: auto; padding-right: 5px;"></div>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <div class="card p-4">
                         <div class="section-title"><i class="fas fa-stream me-2"></i>System Audit Logs</div>
-                        <div id="auditLogList" style="max-height: 500px; overflow-y: auto; background: #fafbfc; border-radius: 12px;"></div>
+                        <div id="auditLogList" style="max-height: 600px; overflow-y: auto; background: #fafbfc; border-radius: 12px;"></div>
                     </div>
                 </div>
             </div>
@@ -119,18 +147,26 @@
                 <button class="btn btn-primary w-100 mb-2 py-2 fw-bold rounded-3" onclick="addMember()">ENROLL MEMBER</button>
                 <button class="btn btn-outline-dark w-100 py-2 fw-bold rounded-3" onclick="openMemberManager()">MEMBER LIST</button>
             </div>
+            <div class="card p-4">
+                <div class="section-title">Data Backup & Export</div>
+                <button class="btn btn-success w-100 mb-2 py-2 fw-bold" onclick="exportFullDataToSpreadsheet()"><i class="fas fa-file-csv me-2"></i>EXPORT SPREADSHEET</button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-light border w-50" onclick="exportBackup()">JSON EXPORT</button>
+                    <label class="btn btn-sm btn-light border w-50 m-0 text-center">IMPORT<input type="file" id="importFile" hidden onchange="importBackup()"></label>
+                </div>
+            </div>
             <div class="card p-4 border-top border-4 border-danger">
                 <div class="section-title text-danger">Lending Desk</div>
                 <select id="loanTypeSelect" class="form-select mb-2" onchange="toggleLoanInputs()">
                     <option value="member">Corporate Member</option><option value="guest">Guest</option>
                 </select>
                 <div id="memberSelectWrap"><select id="loanMemberSelect" class="form-select mb-2"></select></div>
-                <div id="guestInputWrap" class="d-none"><input type="text" id="guestNameInput" class="form-control mb-2" placeholder="Borrower Name"></div>
+                <div id="guestInputWrap" class="d-none"><input type="text" id="guestNameInput" class="form-control mb-2" placeholder="Name"></div>
                 <div class="input-group mb-2">
                     <span class="input-group-text">₱</span>
                     <input type="number" id="loanAmtInput" class="form-control" placeholder="Principal Amount">
                 </div>
-                <button class="btn btn-danger w-100 py-2 fw-bold rounded-3" onclick="releaseLoan()">APPROVE & RELEASE</button>
+                <button class="btn btn-danger w-100 py-2 fw-bold rounded-3" onclick="releaseLoan()">APPROVE LOAN</button>
             </div>
             <div class="card p-4">
                 <div class="section-title">Global SETTINGS</div>
@@ -139,6 +175,7 @@
                     <div class="col-6"><label class="small text-muted fw-bold">INTEREST RATE %</label><input type="number" id="setConfigInterest" class="form-control"></div>
                 </div>
                 <button class="btn btn-dark w-100 mb-3 py-2 fw-bold" onclick="updateSettings()">SAVE SETTINGS</button>
+                <button class="btn btn-link btn-sm text-danger w-100 text-decoration-none fw-bold" onclick="secureSystemWipe()">SYSTEM HARD RESET</button>
             </div>
         </div>
     </div>
@@ -159,6 +196,7 @@
             </div>
         </div>
     </div>
+    <div id="bannedNotice" class="alert alert-danger d-none p-4 rounded-4 shadow-sm border-0"><i class="fas fa-exclamation-triangle me-2"></i><strong>Account Restricted:</strong> Contact Admin.</div>
     <div id="memberActiveContent">
         <div class="section-title"><i class="fas fa-chart-line me-2"></i>Personal Fund Performance</div>
         <div class="row g-4 mb-5">
@@ -166,11 +204,22 @@
             <div class="col-md-4"><div class="fund-card border-top border-4 border-primary"><div class="fund-label">Estimated Dividend Share</div><div class="fund-value text-primary" id="mDashShare">₱0</div></div></div>
             <div class="col-md-4"><div class="fund-card border-top border-4 border-danger"><div class="fund-label">Active Liabilities</div><div class="fund-value text-danger" id="mDashLoan">₱0</div></div></div>
         </div>
+        <div class="section-title"><i class="fas fa-vault me-2"></i>Organizational Fund Status</div>
+        <div class="row g-3 mb-5">
+            <div class="col-md-3"><div class="card p-3 mb-0 shadow-sm border-0"><div class="small text-muted fw-bold">SYSTEM LIQUID CASH</div><div class="h5 mb-0 fw-bold" id="mDashSysCash">₱0</div></div></div>
+            <div class="col-md-3"><div class="card p-3 mb-0 shadow-sm border-0"><div class="small text-muted fw-bold">TOTAL RECEIVABLES</div><div class="h5 mb-0 fw-bold" id="mDashSysLoans">₱0</div></div></div>
+            <div class="col-md-3"><div class="card p-3 mb-0 shadow-sm border-0"><div class="small text-muted fw-bold">RETAINED PROFITS</div><div class="h5 mb-0 fw-bold" id="mDashSysProfit">₱0</div></div></div>
+            <div class="col-md-3"><div class="card p-3 mb-0 shadow-sm border-0"><div class="small text-muted fw-bold">COLLECTIVE ASSETS</div><div class="h5 mb-0 fw-bold" id="mDashSysPool">₱0</div></div></div>
+        </div>
         <div class="card p-4 border-0 shadow-sm rounded-4">
             <div class="section-title"><i class="fas fa-calendar-check me-2"></i>Verified Payment Timeline</div>
             <div id="paymentTimeline" class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3"></div>
         </div>
     </div>
+</div>
+
+<div class="modal fade" id="memberManagerModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content border-0 rounded-4 overflow-hidden"><div class="modal-header bg-dark text-white py-3"><h5 class="modal-title fw-bold">Member Control</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-0"><div id="memberManagerList"></div></div></div></div>
 </div>
 
 <script>
@@ -183,6 +232,7 @@
         appId: "1:943953104162:web:872f8dbc6f3fac7c63a97b"
     };
     const ADMINS = ["ev.lorens.ebrado@gmail.com", "ev.anderson4470@gmail.com"];
+    const WIPE_PIN = "MjQ4NjE3"; 
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     firebase.initializeApp(firebaseConfig);
@@ -192,12 +242,12 @@
 
     function calculateCash() {
         let totalS = 0; 
-        appData.members.forEach(m => { 
+        (appData.members || []).forEach(m => { 
             totalS += Number(m.carryOver || 0); 
-            m.payments.forEach(p => { if(p) totalS += (Number(appData.settings.contri) * (m.slots || 1)); }); 
+            (m.payments || []).forEach(p => { if(p) totalS += (Number(appData.settings.contri) * (m.slots || 1)); }); 
         });
-        let actL = 0; appData.loans.forEach(l => actL += Number(l.principal));
-        return (totalS + appData.profit) - actL;
+        let actL = 0; (appData.loans || []).forEach(l => actL += Number(l.principal));
+        return (totalS + (appData.profit || 0)) - actL;
     }
 
     function save() { db.collection("system").doc("main").set(appData); }
@@ -245,7 +295,7 @@
         appData.members.forEach((m, mi) => {
             let mSum = Number(m.carryOver || 0);
             const slotCount = m.slots || 1;
-            let cells = `<td class="ps-3 text-start"><b>${m.name}</b> <span class="slot-pill">${slotCount} SLOT(S)</span></td>`;
+            let cells = `<td class="ps-3 text-start ${m.banned?'text-muted opacity-50':''}"><b>${m.name}</b> <span class="slot-pill">${slotCount} SLOT${slotCount>1?'S':''}</span></td>`;
             m.payments.forEach((p, pi) => {
                 const cy = appData.cycles[Math.floor(pi/2)];
                 if(p) mSum += (Number(appData.settings.contri) * slotCount);
@@ -256,40 +306,53 @@
         });
         document.getElementById('tableBody').innerHTML = body;
 
-        let actL = 0; appData.loans.forEach(l => actL += Number(l.principal));
+        let actL = 0; (appData.loans || []).forEach(l => actL += Number(l.principal));
         document.getElementById('admCash').innerText = `₱${(totalS + appData.profit - actL).toLocaleString()}`;
         document.getElementById('admLoans').innerText = `₱${actL.toLocaleString()}`;
         document.getElementById('admProfit').innerText = `₱${appData.profit.toLocaleString()}`;
         document.getElementById('admPool').innerText = `₱${(totalS + appData.profit).toLocaleString()}`;
         
-        // ENHANCED LOAN LIST
-        document.getElementById('loanLedgerList').innerHTML = appData.loans.map((l, i) => {
+        document.getElementById('loanLedgerList').innerHTML = (appData.loans || []).map((l, i) => {
             const interestAmt = l.principal * (appData.settings.interest / 100);
             const totalPayable = l.principal + interestAmt;
             return `
-            <div class="loan-item">
-                <div class="d-flex justify-content-between align-items-start">
+            <div class="loan-card-styled">
+                <div class="loan-header-row">
                     <div>
-                        <span class="loan-user">${l.borrower}</span><br>
-                        <small class="text-muted" style="font-size:0.6rem">Ref: #LN-${l.timestamp || 'Legacy'}</small>
+                        <h4 class="loan-name">${l.borrower}</h4>
+                        <div class="loan-ref text-muted">Ref: #LN-Legacy</div>
                     </div>
-                    <span class="badge bg-danger rounded-pill">PENDING</span>
+                    <span class="loan-status-badge">PENDING</span>
                 </div>
-                <div class="loan-detail-grid">
-                    <span class="loan-label">Release Date:</span><span class="loan-val">${l.date}</span>
-                    <span class="loan-label">Principal:</span><span class="loan-val text-dark">₱${l.principal.toLocaleString()}</span>
-                    <span class="loan-label">Interest (${appData.settings.interest}%):</span><span class="loan-val text-primary">+₱${interestAmt.toLocaleString()}</span>
-                    <hr class="my-1" style="grid-column: span 2">
-                    <span class="loan-label">Total Payable:</span><span class="loan-val text-danger fw-bold" style="font-size: 0.9rem">₱${totalPayable.toLocaleString()}</span>
+                
+                <div class="loan-data-container">
+                    <div class="loan-data-row">
+                        <span class="loan-data-label">RELEASE DATE:</span>
+                        <span class="loan-data-value">${l.date}</span>
+                    </div>
+                    <div class="loan-data-row">
+                        <span class="loan-data-label">PRINCIPAL:</span>
+                        <span class="loan-data-value">₱${l.principal.toLocaleString()}</span>
+                    </div>
+                    <div class="loan-data-row">
+                        <span class="loan-data-label">INTEREST (${appData.settings.interest}%):</span>
+                        <span class="loan-data-value text-primary">+₱${interestAmt.toLocaleString()}</span>
+                    </div>
+                    <div class="loan-divider"></div>
+                    <div class="loan-data-row align-items-center">
+                        <span class="loan-total-label">TOTAL PAYABLE:</span>
+                        <span class="loan-total-value">₱${totalPayable.toLocaleString()}</span>
+                    </div>
                 </div>
-                <div class="d-flex gap-2 mt-3">
-                    <button class="btn btn-sm btn-outline-primary w-50 fw-bold" onclick="partial(${i})">PAY PARTIAL</button>
-                    <button class="btn btn-sm btn-success w-50 fw-bold" onclick="full(${i})">SETTLE FULL</button>
+                
+                <div class="row g-2">
+                    <div class="col-6"><button class="btn-partial" onclick="partial(${i})">PAY PARTIAL</button></div>
+                    <div class="col-6"><button class="btn-settle" onclick="full(${i})">SETTLE FULL</button></div>
                 </div>
-            </div>`;
-        }).join('') || '<div class="text-center py-5 text-muted small">No Active Loans Found</div>';
+            </div>
+        `}).join('') || '<div class="text-center py-5 text-muted small">No Active Liabilities</div>';
         
-        document.getElementById('auditLogList').innerHTML = appData.logs.map(l => `
+        document.getElementById('auditLogList').innerHTML = (appData.logs || []).map(l => `
             <div class="log-entry">
                 <div class="log-meta"><span>${l.time}</span><span class="log-admin">${l.admin}</span></div>
                 <div>${l.act}</div>
@@ -298,76 +361,114 @@
         document.getElementById('loanMemberSelect').innerHTML = appData.members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
     }
 
+    function renderMember(user) {
+        const m = appData.members.find(x => x.email.toLowerCase() === user.email.toLowerCase());
+        if(!m) return;
+        if(m.banned) { document.getElementById('bannedNotice').classList.remove('d-none'); document.getElementById('memberActiveContent').classList.add('d-none'); return; }
+        
+        let totalS = 0; appData.members.forEach(me => { 
+            totalS += Number(me.carryOver || 0); 
+            me.payments.forEach(p => { if(p) totalS += (Number(appData.settings.contri) * (me.slots || 1)); }); 
+        });
+        let actL = 0; (appData.loans || []).forEach(l => actL += Number(l.principal));
+
+        let myS = Number(m.carryOver || 0); m.payments.forEach(p => { if(p) myS += (Number(appData.settings.contri) * (m.slots || 1)); });
+        const myL = (appData.loans || []).find(l => l.borrower === m.name);
+        const myLoanVal = myL ? (myL.principal * (1 + appData.settings.interest/100)) : 0;
+        
+        const myShare = (totalS > 0 ? (myS/totalS * appData.profit) : 0);
+        const myEquity = (myS + myShare) - myLoanVal;
+
+        document.getElementById('mDashName').innerText = m.name;
+        document.getElementById('mDashSlotLabel').innerText = `${m.slots || 1} Slot(s)`;
+        document.getElementById('mDashTotalEquity').innerText = `₱${myEquity.toLocaleString(undefined, {maximumFractionDigits:0})}`;
+        document.getElementById('mDashContri').innerText = `₱${myS.toLocaleString()}`;
+        document.getElementById('mDashShare').innerText = `₱${myShare.toLocaleString(undefined, {maximumFractionDigits:0})}`;
+        document.getElementById('mDashLoan').innerText = `₱${myLoanVal.toLocaleString()}`;
+        
+        document.getElementById('mDashSysCash').innerText = `₱${(totalS + appData.profit - actL).toLocaleString()}`;
+        document.getElementById('mDashSysLoans').innerText = `₱${actL.toLocaleString()}`;
+        document.getElementById('mDashSysProfit').innerText = `₱${appData.profit.toLocaleString()}`;
+        document.getElementById('mDashSysPool').innerText = `₱${(totalS + appData.profit).toLocaleString()}`;
+
+        document.getElementById('paymentTimeline').innerHTML = m.payments.map((p, i) => `<div class="col"><div class="payment-box ${p?'paid':'pending'} small">${appData.cycles[Math.floor(i/2)]} ${i%2===0?'15th':'30th'}<br><b>${p?'PAID':'--'}</b></div></div>`).join('');
+    }
+
+    function exportFullDataToSpreadsheet() {
+        let csv = "DATA TYPE,NAME,DETAILS,BALANCE,SLOTS,DATE\n";
+        appData.members.forEach(m => {
+            let s = Number(m.carryOver || 0); m.payments.forEach(p => { if(p) s += (appData.settings.contri * m.slots); });
+            csv += `MEMBER,"${m.name}","${m.email}",₱${s},${m.slots},--\n`;
+        });
+        appData.loans.forEach(l => csv += `LOAN,"${l.borrower}","Principal",₱${l.principal},--,"${l.date}"\n`);
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `MSF_Report.csv`; a.click();
+    }
+
+    function confirmPayment(mi, pi) {
+        const m = appData.members[mi];
+        m.payments[pi] = !m.payments[pi];
+        logAction(`Ledger: ${m.name} [${pi%2===0?'15th':'30th'}] update`);
+        save();
+    }
+
+    function toggleH(m) { 
+        if(!appData.hiddenMonths) appData.hiddenMonths = []; 
+        if(appData.hiddenMonths.includes(m)) appData.hiddenMonths = appData.hiddenMonths.filter(x => x!==m); 
+        else appData.hiddenMonths.push(m); 
+        renderAdmin();
+    }
+
     function releaseLoan() {
         const type = document.getElementById('loanTypeSelect').value;
         const n = type === 'member' ? document.getElementById('loanMemberSelect').value : document.getElementById('guestNameInput').value;
         const a = Number(document.getElementById('loanAmtInput').value);
         if(n && a) { 
-            const now = new Date();
-            const timestamp = Date.now().toString().slice(-6);
-            appData.loans.push({
-                borrower: n, 
-                principal: a, 
-                date: `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`,
-                timestamp: timestamp
-            }); 
-            logAction(`Disbursement: ₱${a} loan released to ${n} (Ref: ${timestamp})`); 
-            save(); 
-            document.getElementById('loanAmtInput').value = '';
+            const today = new Date();
+            const dateStr = today.getDate().toString().padStart(2, '0') + '/' + (today.getMonth() + 1).toString().padStart(2, '0') + '/' + today.getFullYear();
+            appData.loans.push({borrower:n, principal:a, date: dateStr}); 
+            logAction(`Loan: ₱${a} to ${n}`); save(); 
         }
     }
 
     function partial(i) {
-        const amt = Number(prompt(`Enter payment amount for ${appData.loans[i].borrower}:`));
+        const amt = Number(prompt(`Amortize ${appData.loans[i].borrower}:`));
         if(amt > 0 && amt <= appData.loans[i].principal) {
-            const interestCollected = (amt * (appData.settings.interest/100));
-            appData.profit += interestCollected;
+            appData.profit += (amt * (appData.settings.interest/100));
             appData.loans[i].principal -= amt;
-            logAction(`Payment: ${appData.loans[i].borrower} paid ₱${amt} (Profit: +₱${interestCollected})`);
+            logAction(`Amortize: ${appData.loans[i].borrower} ₱${amt}`);
             if(appData.loans[i].principal <= 0) appData.loans.splice(i,1);
             save();
         }
     }
 
     function full(i) {
-        if(confirm(`Confirm full settlement for ${appData.loans[i].borrower}?`)) {
-            const interestCollected = (appData.loans[i].principal * (appData.settings.interest/100));
-            appData.profit += interestCollected;
-            logAction(`Settlement: ${appData.loans[i].borrower} cleared full debt (Profit: +₱${interestCollected})`);
+        if(confirm("Settle full?")) {
+            appData.profit += (appData.loans[i].principal * (appData.settings.interest/100));
+            logAction(`Settle: ${appData.loans[i].borrower}`);
             appData.loans.splice(i,1);
             save();
         }
     }
 
-    // Standard UI Logic
-    function renderMember(user) {
-        const m = appData.members.find(x => x.email.toLowerCase() === user.email.toLowerCase());
-        if(!m) return;
-        let totalS = 0; appData.members.forEach(me => { 
-            totalS += Number(me.carryOver || 0); 
-            me.payments.forEach(p => { if(p) totalS += (Number(appData.settings.contri) * (me.slots || 1)); }); 
+    function openMemberManager() {
+        let h = '<div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th class="ps-4">MEMBER</th><th>SLOTS</th><th>STATUS</th><th class="text-end pe-4">ACTIONS</th></tr></thead><tbody>';
+        appData.members.forEach((m, i) => {
+            h += `<tr><td class="ps-4"><b>${m.name}</b></td><td>${m.slots || 1}</td><td><span class="badge ${m.banned?'bg-danger':'bg-success'}">${m.banned?'BANNED':'OK'}</span></td><td class="text-end pe-4"><button class="btn btn-sm btn-warning" onclick="banM(${i})">B</button> <button class="btn btn-sm btn-danger" onclick="deleteM(${i})">X</button></td></tr>`;
         });
-        let myS = Number(m.carryOver || 0); m.payments.forEach(p => { if(p) myS += (Number(appData.settings.contri) * (m.slots || 1)); });
-        const myL = appData.loans.find(l => l.borrower === m.name);
-        const myLoanVal = myL ? (myL.principal * (1 + appData.settings.interest/100)) : 0;
-        const myShare = (totalS > 0 ? (myS/totalS * appData.profit) : 0);
-        
-        document.getElementById('mDashName').innerText = m.name;
-        document.getElementById('mDashSlotLabel').innerText = `${m.slots || 1} Slot(s)`;
-        document.getElementById('mDashTotalEquity').innerText = `₱${(myS + myShare - myLoanVal).toLocaleString(undefined, {maximumFractionDigits:0})}`;
-        document.getElementById('mDashContri').innerText = `₱${myS.toLocaleString()}`;
-        document.getElementById('mDashShare').innerText = `₱${myShare.toLocaleString(undefined, {maximumFractionDigits:0})}`;
-        document.getElementById('mDashLoan').innerText = `₱${myLoanVal.toLocaleString()}`;
-        document.getElementById('paymentTimeline').innerHTML = m.payments.map((p, i) => `<div class="col"><div class="payment-box ${p?'paid':'pending'} small">${appData.cycles[Math.floor(i/2)]} ${i%2===0?'15th':'30th'}<br><b>${p?'VERIFIED':'--'}</b></div></div>`).join('');
+        document.getElementById('memberManagerList').innerHTML = h + '</tbody></table></div>';
+        new bootstrap.Modal(document.getElementById('memberManagerModal')).show();
     }
 
-    function confirmPayment(mi, pi) { appData.members[mi].payments[pi] = !appData.members[mi].payments[pi]; logAction(`Update: Ledger status changed for ${appData.members[mi].name}`); save(); }
-    function toggleH(m) { if(!appData.hiddenMonths) appData.hiddenMonths = []; if(appData.hiddenMonths.includes(m)) appData.hiddenMonths = appData.hiddenMonths.filter(x => x!==m); else appData.hiddenMonths.push(m); renderAdmin(); }
-    function toggleLoanInputs() { const isG = document.getElementById('loanTypeSelect').value === 'guest'; document.getElementById('memberSelectWrap').classList.toggle('d-none', isG); document.getElementById('guestInputWrap').classList.toggle('d-none', !isG); }
-    function updateSettings() { appData.settings.contri = Number(document.getElementById('setConfigAmount').value); appData.settings.interest = Number(document.getElementById('setConfigInterest').value); save(); alert("Settings Updated"); }
+    function banM(i) { appData.members[i].banned = !appData.members[i].banned; save(); openMemberManager(); }
+    function deleteM(i) { if(confirm("Delete?")) { appData.members.splice(i,1); save(); openMemberManager(); } }
     function autoAddNextMonth() { const last = appData.cycles[appData.cycles.length - 1]; const next = monthNames[(monthNames.indexOf(last) + 1) % 12]; appData.cycles.push(next); appData.members.forEach(m => m.payments.push(false, false)); save(); }
-    function addMember() { const n = prompt("Name:"); const e = prompt("Email:"); const s = prompt("Slots:", "1"); if(n && e) { appData.members.push({name:n, email:e.toLowerCase(), slots: Number(s), payments: new Array(appData.cycles.length*2).fill(false), carryOver:0}); save(); } }
-    function openMemberManager() { alert("Use spreadsheet export for full management."); }
+    function toggleLoanInputs() { const isG = document.getElementById('loanTypeSelect').value === 'guest'; document.getElementById('memberSelectWrap').classList.toggle('d-none', isG); document.getElementById('guestInputWrap').classList.toggle('d-none', !isG); }
+    function updateSettings() { appData.settings.contri = Number(document.getElementById('setConfigAmount').value); appData.settings.interest = Number(document.getElementById('setConfigInterest').value); save(); alert("Saved"); }
+    function addMember() { const n = prompt("Name:"); const e = prompt("Email:"); const s = prompt("Slots:", "1"); if(n && e) { appData.members.push({name:n, email:e.toLowerCase(), slots: Number(s), payments: new Array(appData.cycles.length*2).fill(false), carryOver:0, banned: false}); save(); } }
+    function exportBackup() { const blob = new Blob([JSON.stringify(appData)], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `MSF_Backup.json`; a.click(); }
+    function importBackup() { const r = new FileReader(); r.onload = (e) => { appData = JSON.parse(e.target.result); save(); }; r.readAsText(document.getElementById('importFile').files[0]); }
+    async function secureSystemWipe() { if (btoa(prompt("PIN:")) === WIPE_PIN) { if(confirm("WIPE?")) { await db.collection("system").doc("main").set({ settings: { contri: 100, interest: 5 }, members: [], cycles: ["Jan"], loans: [], profit: 0, logs: [] }); location.reload(); } } }
 </script>
 </body>
 </html>
