@@ -431,7 +431,7 @@
 
     function confirmPayment(mi, pi) {
         appData.members[mi].payments[pi] = !appData.members[mi].payments[pi];
-        logAction(`Ledger Update: ${appData.members[mi].name} - ${appData.cycles[Math.floor(pi/2)]}`);
+        logAction(`Contribution update: ${appData.members[mi].name} - ${appData.cycles[Math.floor(pi/2)]}`);
         save();
         notify("Ledger Saved");
     }
