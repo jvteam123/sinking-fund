@@ -172,7 +172,7 @@
             <div class="card p-4">
                 <div class="section-title">Global SETTINGS</div>
                 <div class="row g-2 mb-3">
-                    <div class="col-6"><label class="small text-muted fw-bold">BASE CONTRI</label><input type="number" id="setConfigAmount" class="form-control"></div>
+                    <div class="col-6"><label class="small text-muted fw-bold">CONTRIBUTION</label><input type="number" id="setConfigAmount" class="form-control"></div>
                     <div class="col-6"><label class="small text-muted fw-bold">INTEREST RATE %</label><input type="number" id="setConfigInterest" class="form-control"></div>
                 </div>
                 <button class="btn btn-dark w-100 mb-3 py-2 fw-bold" onclick="updateSettings()">SAVE SETTINGS</button>
@@ -204,7 +204,7 @@
         <div class="row g-4 mb-5">
             <div class="col-md-4"><div class="fund-card border-top border-4 border-success"><div class="fund-label">Principal Contribution</div><div class="fund-value" id="mDashContri">₱0</div><div class="small text-muted mt-2">Paid-in capital balance</div></div></div>
             <div class="col-md-4"><div class="fund-card border-top border-4 border-primary"><div class="fund-label">Earned Dividends</div><div class="fund-value" id="mDashShare">₱0</div><div class="small text-muted mt-2">Share of system profit</div></div></div>
-            <div class="col-md-4"><div class="fund-card border-top border-4 border-danger"><div class="fund-label">Total Liabilities</div><div class="fund-value text-danger" id="mDashLoan">₱0</div><div class="small text-muted mt-2">Outstanding loan + interest</div></div></div>
+            <div class="col-md-4"><div class="fund-card border-top border-4 border-danger"><div class="fund-label">Total Loan</div><div class="fund-value text-danger" id="mDashLoan">₱0</div><div class="small text-muted mt-2">Outstanding loan + interest</div></div></div>
         </div>
 
         <div class="section-title"><i class="fas fa-landmark me-2"></i>Organization Fund Transparency</div>
@@ -309,7 +309,7 @@
         
         let head = '<tr><th class="ps-3 text-start">ACCOUNT NAME</th>';
         appData.cycles.forEach(c => { if(!appData.hiddenMonths?.includes(c)) head += `<th colspan="2" class="border-start text-uppercase">${c}</th>`; });
-        document.getElementById('tableHead').innerHTML = head + '<th>TOTAL ASSETS</th></tr>';
+        document.getElementById('tableHead').innerHTML = head + '<th>Contribution</th></tr>';
         
         let body = ''; let totalS = 0;
         appData.members.forEach((m, mi) => {
