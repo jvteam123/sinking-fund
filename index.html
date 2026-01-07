@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PH Sinking Fund - Cloud v10.7</title>
+    <title>PH Sinking Fund Cloud v10.8</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -14,13 +14,15 @@
         .navbar { background-color: var(--primary-blue); border-bottom: 3px solid #ffc107; }
         #loginPage, #adminDashboard, #memberDashboard, #loadingScreen { display: none; }
         .card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-        .unpaid-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; background-color: #ffe5e5; color: var(--danger-red); border: 1px solid var(--danger-red); font-weight: bold; }
         .history-item { border-left: 5px solid var(--success-green); margin-bottom: 12px; padding: 12px; background: white; border-radius: 8px; }
         .history-item.unpaid { border-left-color: #dee2e6; color: #adb5bd; }
         .transparency-card { background: linear-gradient(135deg, #003366 0%, #00509d 100%); color: white; }
+        #debugStatus { position: fixed; bottom: 0; width: 100%; background: #333; color: #0f0; font-size: 10px; padding: 5px; z-index: 10000; font-family: monospace; }
     </style>
 </head>
 <body>
+
+<div id="debugStatus">System Status: Initializing...</div>
 
 <div id="loadingScreen" class="position-fixed w-100 h-100 bg-white d-flex flex-column align-items-center justify-content-center" style="z-index: 9999; top:0; left:0;">
     <div class="spinner-border text-primary mb-3"></div>
@@ -36,16 +38,14 @@
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="22" class="me-3">
             Sign in with Google
         </button>
+        <div class="mt-3 small text-muted">Authorized Personnel Only</div>
     </div>
 </div>
 
 <nav id="topNav" class="navbar navbar-dark mb-4 d-none sticky-top">
     <div class="container d-flex justify-content-between align-items-center">
-        <span class="navbar-brand fw-bold">🇵🇭 SF PRO v10.7</span>
-        <div class="d-flex align-items-center">
-            <span id="navUserName" class="text-white me-3 d-none d-md-inline small"></span>
-            <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="signOut()">Logout</button>
-        </div>
+        <span class="navbar-brand fw-bold">🇵🇭 SF PRO v10.8</span>
+        <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="signOut()">Logout</button>
     </div>
 </nav>
 
@@ -131,6 +131,8 @@
 </div>
 
 <script>
+    const log = (msg) => document.getElementById('debugStatus').innerText = "LOG: " + msg;
+
     const firebaseConfig = {
         apiKey: "AIzaSyC5nSdDA5IrA0Gpt_nUcpT2NI0kdGGU3wI",
         authDomain: "sinking-fund-51fcd.firebaseapp.com",
@@ -149,8 +151,8 @@
 
     auth.onAuthStateChanged(user => {
         if (user) {
+            log("User logged in as " + user.email);
             document.getElementById('loadingScreen').style.display = 'flex';
-            document.getElementById('navUserName').innerText = user.displayName;
             db.collection("system").doc("main").onSnapshot(doc => {
                 if (doc.exists) appData = doc.data();
                 else db.collection("system").doc("main").set(appData);
@@ -166,8 +168,9 @@
                     showPage('memberDashboard');
                     renderMember(user);
                 }
-            });
+            }, err => log("Firestore Error: " + err.code));
         } else {
+            log("No active session. Showing login.");
             document.getElementById('loadingScreen').style.display = 'none';
             showPage('loginPage');
         }
@@ -178,9 +181,18 @@
         document.getElementById(id).style.display = 'block';
     }
 
-    function signIn() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+    function signIn() { 
+        log("Attempting Google Sign-in...");
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).catch(err => {
+            log("Auth Error: " + err.message);
+            alert("Google Login Blocked. Check 'Authorized Domains' in Firebase.");
+        });
+    }
+    
     function signOut() { auth.signOut().then(() => location.reload()); }
 
+    // --- RENDER FUNCTIONS ---
     function renderAdmin() {
         document.getElementById('setConfigAmount').value = appData.settings.contri;
         document.getElementById('setConfigInterest').value = appData.settings.interest;
@@ -223,13 +235,13 @@
         const member = appData.members.find(m => m.name === user.displayName);
         document.getElementById('userPhoto').src = user.photoURL;
         document.getElementById('mDashName').innerText = user.displayName;
-        if(!member) return document.getElementById('paymentTimeline').innerHTML = `<div class='alert alert-info'>Ask Admin to add you.</div>`;
+        if(!member) return document.getElementById('paymentTimeline').innerHTML = `<div class='alert alert-info'>Ask Admin to add you as "${user.displayName}"</div>`;
         let saved = 0; const timeline = document.getElementById('paymentTimeline'); timeline.innerHTML = '';
         member.payments.forEach((p, idx) => {
             const cy = appData.cycles[Math.floor(idx/2)];
             const cut = idx % 2 === 0 ? "15th" : "30th";
             if(p) saved += appData.settings.contri;
-            timeline.innerHTML += `<div class="history-item ${p?'':'unpaid'} d-flex justify-content-between"><span>${cy} ${cut} Contribution</span><b>${p ? '₱'+appData.settings.contri : 'UNPAID'}</b></div>`;
+            timeline.innerHTML += `<div class="history-item ${p?'':'unpaid'} d-flex justify-content-between"><span>${cy} ${cut}</span><b>${p ? '₱'+appData.settings.contri : 'UNPAID'}</b></div>`;
         });
         document.getElementById('mDashContri').innerText = `₱${saved.toLocaleString()}`;
         const loan = appData.loans.find(l => l.borrower === user.displayName);
@@ -239,11 +251,12 @@
         document.getElementById('mGroupLoans').innerText = `₱${totalActiveLoans.toLocaleString()}`;
     }
 
+    // --- ACTIONS ---
     function togglePay(mIdx, pIdx) { appData.members[mIdx].payments[pIdx] = !appData.members[mIdx].payments[pIdx]; save(); }
     function collectLoan(idx) { appData.profit += (appData.loans[idx].principal * (appData.settings.interest/100)); appData.loans.splice(idx, 1); save(); }
     function releaseLoan() {
         const amt = parseFloat(document.getElementById('loanAmtInput').value);
-        let b = document.getElementById('loanType').value === 'member' ? document.getElementById('loanMemberSelect').value : document.getElementById('nonName').value + " (" + document.getElementById('nonContact').value + ")";
+        let b = document.getElementById('loanType').value === 'member' ? document.getElementById('loanMemberSelect').value : document.getElementById('nonName').value;
         if(amt) { appData.loans.push({borrower: b, principal: amt}); save(); document.getElementById('loanAmtInput').value = ''; }
     }
     function addMember() { const n = prompt("Exact Google Name:"); if(n) { appData.members.push({name: n, payments: new Array(appData.cycles.length*2).fill(false)}); save(); } }
