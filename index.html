@@ -117,8 +117,8 @@
             </div>
 
             <div class="card p-4">
-                <div class="section-title">Data Backup & Excel</div>
-                <button class="btn btn-success w-100 mb-2 py-2 fw-bold" onclick="exportFullDataToExcel()"><i class="fas fa-file-excel me-2"></i>EXPORT FULL EXCEL</button>
+                <div class="section-title">Data Backup & Export</div>
+                <button class="btn btn-success w-100 mb-2 py-2 fw-bold" onclick="exportFullDataToSpreadsheet()"><i class="fas fa-file-csv me-2"></i>EXPORT SPREADSHEET</button>
                 <div class="d-flex gap-2">
                     <button class="btn btn-sm btn-light border w-50" onclick="exportBackup()">JSON EXPORT</button>
                     <label class="btn btn-sm btn-light border w-50 m-0 text-center">IMPORT<input type="file" id="importFile" hidden onchange="importBackup()"></label>
@@ -337,7 +337,8 @@
         document.getElementById('paymentTimeline').innerHTML = m.payments.map((p, i) => `<div class="col"><div class="payment-box ${p?'paid':'pending'} small">${appData.cycles[Math.floor(i/2)]} ${i%2===0?'15th':'30th'}<br><b>${p?'VERIFIED':'UNPAID'}</b></div></div>`).join('');
     }
 
-    function exportFullDataToExcel() {
+    // UPDATED: EXPORT TO SPREADSHEET (CSV)
+    function exportFullDataToSpreadsheet() {
         let csv = "DATA TYPE,NAME/ADMIN,DETAILS,BALANCE/AMOUNT,SLOTS,DATE/TIME\n";
         appData.members.forEach(m => {
             let total = Number(m.carryOver || 0) + (m.payments.filter(p => p).length * (appData.settings.contri * (m.slots || 1)));
@@ -346,7 +347,7 @@
         appData.loans.forEach(l => { csv += `LOAN,"${l.borrower}","Monthly Due",₱${l.principal},--,"${l.date}"\n`; });
         appData.logs.forEach(l => { csv += `AUDIT,"${l.admin}","${l.act.replace(/"/g,'""')}",${l.balance},--,"${l.time}"\n`; });
         const blob = new Blob([csv], { type: 'text/csv' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `MSF_Full_Export_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `MSF_Spreadsheet_Export_${new Date().toISOString().slice(0,10)}.csv`; a.click();
     }
 
     function releaseLoan() {
