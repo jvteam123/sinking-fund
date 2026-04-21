@@ -537,148 +537,6 @@
         .empty-state i { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.3; }
         .empty-state p { font-size: 0.85rem; }
 
-        /* ===== DARK MODE ===== */
-        body.dark {
-            --bg: #0f172a;
-            --surface: #1e293b;
-            --surface2: #162032;
-            --border: #2d3f55;
-            --text: #f1f5f9;
-            --text2: #94a3b8;
-            --text3: #64748b;
-            --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2);
-            --shadow-md: 0 4px 24px rgba(0,0,0,0.35);
-        }
-        body.dark .data-table th { background: #162032; }
-        body.dark .data-table tr:hover td { background: #1a2942; }
-        body.dark .data-table tfoot td { background: #162032; }
-        body.dark .member-mgr-table th { background: #162032; }
-        body.dark .member-mgr-table tr:hover td { background: #1a2942; }
-        body.dark .audit-log { background: #162032; }
-        body.dark .log-entry { border-bottom-color: #2d3f55; }
-        body.dark .input-prefix { border-color: var(--border); }
-        body.dark .input-prefix input { background: var(--surface); color: var(--text); }
-        body.dark .input-prefix-text { background: var(--bg); border-right-color: var(--border); color: var(--text3); }
-        body.dark .form-control-custom { background: var(--surface); color: var(--text); border-color: var(--border); }
-        body.dark select.form-control-custom { background: var(--surface); color: var(--text); }
-        body.dark .login-card { background: rgba(255,255,255,0.03); }
-        body.dark .quick-stat { background: #162032; }
-        body.dark .month-chip { background: #1e293b; color: var(--text2); border-color: var(--border); }
-        body.dark .month-chip.active { background: #1e3a5f; color: #93c5fd; border-color: #2563eb; }
-        body.dark .payment-box { background: #162032; border-color: var(--border); }
-        body.dark .payment-box.paid { background: #052e16; border-color: #166534; }
-        body.dark .type-option { background: var(--surface); border-color: var(--border); color: var(--text2); }
-        body.dark .type-option.selected { background: #3b1515; border-color: var(--danger); }
-        body.dark .loan-card { background: var(--surface); border-color: var(--border); }
-        body.dark .loan-data { background: #162032; }
-        body.dark .summary-row { background: #0c2a45; border-color: #1e4976; }
-        body.dark .stat-card { background: var(--surface); border-color: var(--border); }
-        body.dark .fund-card { background: var(--surface); border-color: var(--border); }
-        body.dark .panel { background: var(--surface); border-color: var(--border); }
-        body.dark .panel-header { border-bottom-color: var(--border); }
-        body.dark .modal-content { background: var(--surface); }
-        body.dark .modal-header-custom { border-bottom-color: var(--border); }
-        body.dark .modal-footer-custom { border-top-color: var(--border); }
-        body.dark .confirm-modal { background: var(--surface); }
-        body.dark .confirm-cancel { background: var(--bg); border-color: var(--border); color: var(--text2); }
-        body.dark .sidebar { background: var(--surface); border-right-color: var(--border); }
-        body.dark #topNav { background: var(--surface); border-bottom-color: var(--border); }
-        body.dark .sidebar-btn:hover { background: var(--bg); }
-        body.dark .sidebar-btn.active { background: #1e3a5f; }
-        body.dark .action-btn { background: var(--surface); border-color: var(--border); }
-        body.dark .page-btn { background: var(--surface); border-color: var(--border); }
-        body.dark .health-ring-bg { stroke: #2d3f55; }
-
-        /* ===== DARK MODE TOGGLE ===== */
-        .dark-toggle {
-            width: 40px; height: 22px; background: var(--border);
-            border-radius: 99px; position: relative; cursor: pointer;
-            transition: background 0.3s; border: none; flex-shrink: 0;
-        }
-        .dark-toggle.on { background: var(--primary); }
-        .dark-toggle::after {
-            content: ''; position: absolute; width: 16px; height: 16px;
-            border-radius: 50%; background: white; top: 3px; left: 3px;
-            transition: transform 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
-        .dark-toggle.on::after { transform: translateX(18px); }
-
-        /* ===== HEALTH SCORE ===== */
-        .health-card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); padding: 1.5rem; text-align: center;
-            box-shadow: var(--shadow); position: relative;
-        }
-        .health-ring { position: relative; display: inline-block; margin-bottom: 0.75rem; }
-        .health-ring svg { transform: rotate(-90deg); }
-        .health-ring-bg { fill: none; stroke: #e2e8f0; stroke-width: 8; }
-        .health-ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
-        .health-score-num {
-            position: absolute; inset: 0; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            font-family: 'DM Mono', monospace;
-        }
-        .health-score-val { font-size: 1.8rem; font-weight: 900; line-height: 1; }
-        .health-score-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-top: 2px; }
-        .health-grade {
-            display: inline-block; padding: 3px 12px; border-radius: 20px;
-            font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
-            margin-bottom: 0.5rem;
-        }
-        .grade-a { background: #d1fae5; color: #065f46; }
-        .grade-b { background: #dbeafe; color: #1e40af; }
-        .grade-c { background: #fef3c7; color: #92400e; }
-        .grade-d { background: #fee2e2; color: #991b1b; }
-
-        /* ===== ALERTS PANEL ===== */
-        .alert-item {
-            display: flex; align-items: flex-start; gap: 10px;
-            padding: 10px 14px; border-bottom: 1px solid var(--border);
-            transition: background 0.15s;
-        }
-        .alert-item:last-child { border-bottom: none; }
-        .alert-item:hover { background: var(--surface2); }
-        .alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
-        .alert-dot.red { background: var(--danger); }
-        .alert-dot.amber { background: var(--warning); }
-        .alert-dot.blue { background: var(--primary-light); }
-        .alert-text { font-size: 0.8rem; font-weight: 600; color: var(--text); }
-        .alert-sub { font-size: 0.7rem; color: var(--text3); margin-top: 1px; }
-
-        /* ===== LEADERBOARD ===== */
-        .lb-row {
-            display: flex; align-items: center; gap: 12px;
-            padding: 10px 0; border-bottom: 1px solid var(--border);
-        }
-        .lb-row:last-child { border-bottom: none; }
-        .lb-rank {
-            width: 28px; height: 28px; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 900; font-size: 0.78rem; flex-shrink: 0;
-        }
-        .lb-rank.gold { background: #fef9c3; color: #a16207; }
-        .lb-rank.silver { background: #f1f5f9; color: #475569; }
-        .lb-rank.bronze { background: #fef3c7; color: #92400e; }
-        .lb-rank.other { background: var(--bg); color: var(--text3); }
-        .lb-bar-wrap { flex: 1; }
-        .lb-name { font-weight: 700; font-size: 0.82rem; margin-bottom: 3px; }
-        .lb-bar { height: 5px; background: var(--bg); border-radius: 99px; }
-        .lb-bar-fill { height: 5px; border-radius: 99px; background: linear-gradient(90deg, var(--primary), var(--primary-light)); }
-        .lb-amount { font-family: 'DM Mono', monospace; font-size: 0.78rem; font-weight: 700; color: var(--text); flex-shrink: 0; }
-
-        /* ===== STATEMENT MODAL ===== */
-        .statement-content { font-family: 'DM Mono', monospace; font-size: 0.78rem; }
-        .statement-header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--border); }
-        .statement-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed var(--border); }
-        .statement-row:last-child { border-bottom: none; }
-        @media print {
-            body > *:not(#printArea) { display: none !important; }
-            #printArea { display: block !important; position: fixed; inset: 0; background: white; z-index: 99999; padding: 2rem; }
-        }
-
-        /* ===== PROGRESS RING ANIMATION ===== */
-        @keyframes ringFill { from { stroke-dashoffset: 283; } }
-
         /* ===== SCROLLBARS ===== */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -798,16 +656,6 @@
         </div>
     </div>
     <div class="nav-user">
-        <!-- Global Search -->
-        <div class="search-bar" id="globalSearchWrap" style="display:none">
-            <i class="fas fa-search"></i>
-            <input type="text" id="globalSearchInput" placeholder="Search member..." oninput="globalSearch(this.value)" style="width:180px">
-        </div>
-        <!-- Dark mode -->
-        <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:0.72rem;color:var(--text3)">🌙</span>
-            <button class="dark-toggle" id="darkToggle" onclick="toggleDark()" title="Toggle dark mode"></button>
-        </div>
         <div class="nav-avatar" id="navAvatar">U</div>
         <div>
             <div class="nav-user-name" id="navName">Loading...</div>
@@ -934,43 +782,11 @@
                                 <div id="memberSnapshotList"></div>
                             </div>
                         </div>
-                        <!-- Leaderboard -->
-                        <div class="panel">
-                            <div class="panel-header">
-                                <div class="panel-title"><i class="fas fa-trophy"></i> Top Contributors</div>
-                                <span style="font-size:0.7rem;color:var(--text3)">by total contribution</span>
-                            </div>
-                            <div class="panel-body" style="padding-top:0.5rem">
-                                <div id="leaderboardList"></div>
-                            </div>
-                        </div>
                     </div>
                     <div class="col-lg-4">
-                        <!-- Fund Health Score -->
-                        <div class="health-card mb-3">
-                            <div class="panel-title" style="justify-content:center;margin-bottom:1rem"><i class="fas fa-heartbeat"></i> Fund Health Score</div>
-                            <div class="health-ring">
-                                <svg width="100" height="100" viewBox="0 0 100 100">
-                                    <circle class="health-ring-bg" cx="50" cy="50" r="42"/>
-                                    <circle class="health-ring-fill" id="healthRingFill" cx="50" cy="50" r="42" stroke-dasharray="264" stroke-dashoffset="264"/>
-                                </svg>
-                                <div class="health-score-num">
-                                    <div class="health-score-val" id="healthScoreVal">--</div>
-                                    <div class="health-score-label">/ 100</div>
-                                </div>
-                            </div>
-                            <div><span class="health-grade" id="healthGrade">—</span></div>
-                            <div style="font-size:0.75rem;color:var(--text3);margin-top:0.5rem" id="healthDesc">Calculating...</div>
-                        </div>
-                        <!-- Alerts -->
                         <div class="panel">
-                            <div class="panel-header"><div class="panel-title"><i class="fas fa-bell"></i> Alerts <span id="alertCountBadge" class="sb-badge ms-1" style="display:none">0</span></div></div>
-                            <div id="alertsList" style="max-height:220px;overflow-y:auto;"></div>
-                        </div>
-                        <!-- Recent Activity -->
-                        <div class="panel mt-3">
                             <div class="panel-header"><div class="panel-title"><i class="fas fa-history"></i> Recent Activity</div></div>
-                            <div style="height:240px; overflow-y:auto;">
+                            <div style="height:340px; overflow-y:auto;">
                                 <div id="auditLogListOverview" class="audit-log" style="border-radius:0;"></div>
                             </div>
                         </div>
@@ -1350,40 +1166,8 @@
     </div>
 </div>
 
-<!-- ===== STATEMENT MODAL ===== -->
-<div class="modal fade" id="statementModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header-custom">
-                <div class="modal-title-custom"><i class="fas fa-file-alt"></i> Member Statement</div>
-                <div style="display:flex;gap:8px;align-items:center">
-                    <button class="btn-secondary-custom" style="width:auto;padding:0.4rem 0.9rem;font-size:0.78rem" onclick="printStatement()"><i class="fas fa-print me-1"></i>Print</button>
-                    <button class="modal-close" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
-                </div>
-            </div>
-            <div class="modal-body-custom" id="statementBody" style="font-family:'DM Mono',monospace;font-size:0.8rem"></div>
-        </div>
-    </div>
-</div>
-
-<!-- Print Area -->
-<div id="printArea" style="display:none"></div>
-
-<!-- Global Search Dropdown -->
-<div id="globalSearchDropdown" style="display:none;position:fixed;top:72px;right:200px;width:320px;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-lg);z-index:2000;overflow:hidden;"></div>
-
 <script>
-    // ===== DARK MODE =====
-    function toggleDark() {
-        document.body.classList.toggle('dark');
-        document.getElementById('darkToggle').classList.toggle('on');
-        localStorage.setItem('msfDark', document.body.classList.contains('dark') ? '1' : '0');
-    }
-    if (localStorage.getItem('msfDark') === '1') {
-        document.body.classList.add('dark');
-        document.getElementById('darkToggle').classList.add('on');
-    }
-</script>
+    const firebaseConfig = {
         apiKey: "AIzaSyC5nSdDA5IrA0Gpt_nUcpT2NI0kdGGU3wI",
         authDomain: "sinking-fund-51fcd.firebaseapp.com",
         projectId: "sinking-fund-51fcd",
@@ -1505,7 +1289,6 @@
                 if (isAdmin) {
                     document.getElementById('adminDashboard').style.display = 'block';
                     document.getElementById('memberDashboard').style.display = 'none';
-                    document.getElementById('globalSearchWrap').style.display = 'flex';
                     renderAdmin();
                 } else {
                     document.getElementById('memberDashboard').style.display = 'block';
@@ -1629,9 +1412,6 @@
             </div>`).join('') || '<div class="empty-state"><i class="fas fa-history"></i><p>No activity yet</p></div>';
 
         renderPaginatedLoans();
-        renderHealthScore();
-        renderAlerts();
-        renderLeaderboard();
     }
 
     function renderPaginatedLoans() {
@@ -1704,7 +1484,6 @@
                 <td style="font-family:'DM Mono',monospace;font-size:0.8rem">₱${c.toLocaleString()}</td>
                 <td><span class="status-pill ${m.banned ? 'banned' : 'active'}">${m.banned ? 'Banned' : 'Active'}</span></td>
                 <td style="text-align:right;padding-right:1.5rem">
-                    <button class="action-btn" title="View Statement" onclick="openStatement(${ri})"><i class="fas fa-file-alt"></i></button>
                     <button class="action-btn" title="Edit Member" onclick="openEditMember(${ri})"><i class="fas fa-pen"></i></button>
                     <button class="action-btn warn" title="${m.banned ? 'Unban' : 'Ban'}" onclick="banM(${ri})">${m.banned ? '<i class="fas fa-user-check"></i>' : '<i class="fas fa-ban"></i>'}</button>
                     <button class="action-btn danger" title="Delete Member" onclick="deleteM(${ri})"><i class="fas fa-trash"></i></button>
@@ -2080,11 +1859,7 @@
     async function secureSystemWipe() {
         const pin = prompt("Enter Security PIN:");
         if (btoa(pin) === WIPE_PIN) {
-            showConfirm('SYSTEM HARD RESET', 'DANGER: A backup will be auto-downloaded first, then ALL financial records will be permanently deleted.', async () => {
-                // Auto-export full backup before wiping
-                notify('📦 Auto-exporting backup before reset...', 'info');
-                downloadFile(JSON.stringify(appData, null, 2), `MSF_PreWipe_Backup_${today()}.json`, 'application/json');
-                await new Promise(r => setTimeout(r, 800)); // small delay so download triggers
+            showConfirm('SYSTEM HARD RESET', 'DANGER: This will permanently delete ALL financial records. This cannot be undone.', async () => {
                 await db.collection("system").doc("main").set({ settings: { contri: 100, interest: 5 }, members: [], cycles: ["Jan"], loans: [], profit: 0, logs: [], hiddenMonths: [] });
                 location.reload();
             }, 'danger', '💣');
@@ -2100,199 +1875,6 @@
         a.download = filename;
         a.click();
     }
-
-    function today() { return new Date().toISOString().split('T')[0]; }
-
-    // ===== FUND HEALTH SCORE =====
-    function renderHealthScore() {
-        const members = appData.members || [];
-        const loans = appData.loans || [];
-        const cycles = appData.cycles || [];
-        if (!members.length) { document.getElementById('healthScoreVal').innerText = '--'; return; }
-
-        // 1. Payment compliance rate (40 pts)
-        let totalSlots = 0, paidSlots = 0;
-        members.forEach(m => { (m.payments||[]).forEach(p => { totalSlots++; if(p) paidSlots++; }); });
-        const complianceRate = totalSlots > 0 ? paidSlots / totalSlots : 0;
-        const complianceScore = Math.round(complianceRate * 40);
-
-        // 2. Loan-to-fund ratio (30 pts) — lower loans = healthier
-        let systemTotal = 0;
-        members.forEach(m => systemTotal += getMemberContribution(m));
-        const loanTotal = loans.reduce((a,l) => a + Number(l.principal), 0);
-        const loanRatio = systemTotal > 0 ? loanTotal / systemTotal : 0;
-        const loanScore = Math.round(Math.max(0, 1 - loanRatio) * 30);
-
-        // 3. Earnings ratio (20 pts)
-        const profit = appData.profit || 0;
-        const earningsRatio = systemTotal > 0 ? Math.min(profit / systemTotal, 0.5) / 0.5 : 0;
-        const earningsScore = Math.round(earningsRatio * 20);
-
-        // 4. Member activity (10 pts) — at least 1 cycle with payments
-        const activityScore = cycles.length > 0 ? 10 : 0;
-
-        const total = complianceScore + loanScore + earningsScore + activityScore;
-        document.getElementById('healthScoreVal').innerText = total;
-
-        // Ring fill: circumference = 2 * PI * 42 ≈ 264
-        const offset = 264 - (264 * total / 100);
-        const ring = document.getElementById('healthRingFill');
-        ring.style.strokeDashoffset = offset;
-        const color = total >= 80 ? '#059669' : total >= 60 ? '#3b82f6' : total >= 40 ? '#d97706' : '#dc2626';
-        ring.style.stroke = color;
-
-        let grade, gradeClass, desc;
-        if (total >= 85) { grade = 'Excellent'; gradeClass = 'grade-a'; desc = 'Fund is in outstanding condition.'; }
-        else if (total >= 70) { grade = 'Good'; gradeClass = 'grade-b'; desc = 'Fund is healthy with minor gaps.'; }
-        else if (total >= 50) { grade = 'Fair'; gradeClass = 'grade-c'; desc = 'Improve compliance & reduce loans.'; }
-        else { grade = 'At Risk'; gradeClass = 'grade-d'; desc = 'Immediate attention required.'; }
-
-        const gradeEl = document.getElementById('healthGrade');
-        gradeEl.innerText = grade;
-        gradeEl.className = `health-grade ${gradeClass}`;
-        document.getElementById('healthDesc').innerText = desc;
-    }
-
-    // ===== ALERTS =====
-    function renderAlerts() {
-        const alerts = [];
-        const members = appData.members || [];
-        const loans = appData.loans || [];
-        const cycles = appData.cycles || [];
-
-        // Unpaid members for latest cycle
-        if (cycles.length > 0) {
-            const lastCycleIdx = cycles.length - 1;
-            const unpaid = members.filter(m => !m.banned && (!(m.payments||[])[lastCycleIdx*2] || !(m.payments||[])[lastCycleIdx*2+1]));
-            if (unpaid.length > 0) {
-                alerts.push({ dot:'red', text:`${unpaid.length} member${unpaid.length>1?'s':''} have unpaid contributions`, sub:`Latest cycle: ${cycles[lastCycleIdx]}` });
-            }
-        }
-        // Loans outstanding
-        if (loans.length > 0) {
-            const total = loans.reduce((a,l) => a+Number(l.principal), 0);
-            alerts.push({ dot:'amber', text:`${loans.length} active loan${loans.length>1?'s':''} outstanding`, sub:`₱${total.toLocaleString()} total receivable` });
-        }
-        // Banned members
-        const banned = members.filter(m => m.banned);
-        if (banned.length) alerts.push({ dot:'amber', text:`${banned.length} banned member${banned.length>1?'s':''}`, sub: banned.map(m=>m.name).join(', ') });
-        // No members
-        if (!members.length) alerts.push({ dot:'blue', text:'No members enrolled yet', sub:'Use "Add Member" to get started' });
-        // Perfect compliance
-        if (!alerts.length) alerts.push({ dot:'blue', text:'All systems normal', sub:'No issues detected' });
-
-        const badge = document.getElementById('alertCountBadge');
-        const realAlerts = alerts.filter(a => a.dot !== 'blue');
-        badge.innerText = realAlerts.length;
-        badge.style.display = realAlerts.length > 0 ? 'inline-block' : 'none';
-
-        document.getElementById('alertsList').innerHTML = alerts.map(a => `
-            <div class="alert-item">
-                <div class="alert-dot ${a.dot}"></div>
-                <div><div class="alert-text">${a.text}</div><div class="alert-sub">${a.sub}</div></div>
-            </div>`).join('');
-    }
-
-    // ===== LEADERBOARD =====
-    function renderLeaderboard() {
-        const members = [...(appData.members || [])];
-        if (!members.length) { document.getElementById('leaderboardList').innerHTML = '<div class="empty-state"><i class="fas fa-trophy"></i><p>No members yet</p></div>'; return; }
-        const withContri = members.map(m => ({ name: m.name, c: getMemberContribution(m) })).sort((a,b) => b.c - a.c);
-        const max = withContri[0].c || 1;
-        const medals = ['gold','silver','bronze'];
-        document.getElementById('leaderboardList').innerHTML = withContri.slice(0,8).map((m,i) => `
-            <div class="lb-row">
-                <div class="lb-rank ${medals[i]||'other'}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
-                <div class="lb-bar-wrap">
-                    <div class="lb-name">${m.name}</div>
-                    <div class="lb-bar"><div class="lb-bar-fill" style="width:${m.c/max*100}%"></div></div>
-                </div>
-                <div class="lb-amount">₱${m.c.toLocaleString()}</div>
-            </div>`).join('');
-    }
-
-    // ===== MEMBER STATEMENT =====
-    function openStatement(mi) {
-        const m = appData.members[mi];
-        let totalSys = 0;
-        appData.members.forEach(me => totalSys += getMemberContribution(me));
-        const myC = getMemberContribution(m);
-        const myShare = totalSys > 0 ? (myC / totalSys * (appData.profit || 0)) : 0;
-        const myLoan = appData.loans.find(l => l.borrower === m.name);
-        const myLoanVal = myLoan ? (myLoan.principal * (1 + appData.settings.interest / 100)) : 0;
-        const equity = myC + myShare - myLoanVal;
-        const now = new Date().toLocaleDateString('en-PH', { year:'numeric', month:'long', day:'numeric' });
-
-        let payRows = '';
-        (m.payments || []).forEach((p, i) => {
-            const cycle = appData.cycles[Math.floor(i/2)];
-            const slot = i%2===0?'15th':'30th';
-            const amt = p ? (appData.settings.contri * (m.slots||1)) : 0;
-            payRows += `<div class="statement-row"><span>${cycle} ${slot}</span><span style="color:${p?'var(--success)':'var(--text3)'}">${p?`+₱${amt.toLocaleString()}`:'—'}</span></div>`;
-        });
-
-        document.getElementById('statementBody').innerHTML = `
-            <div class="statement-header">
-                <div style="font-size:1.1rem;font-weight:900;color:var(--accent)">MSF PRO</div>
-                <div style="font-size:0.7rem;color:var(--text3);margin-bottom:0.5rem">MUTUAL SAVINGS FUND — MEMBER STATEMENT</div>
-                <div style="font-size:0.85rem;font-weight:700">${m.name}</div>
-                <div style="font-size:0.7rem;color:var(--text3)">${m.email} &bull; ${m.slots||1} Slot(s)</div>
-                <div style="font-size:0.7rem;color:var(--text3);margin-top:4px">Issued: ${now}</div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
-                <div style="background:var(--surface2);border-radius:10px;padding:12px;text-align:center">
-                    <div style="font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:4px">Total Contributions</div>
-                    <div style="font-size:1.2rem;font-weight:900;color:var(--success)">₱${myC.toLocaleString()}</div>
-                </div>
-                <div style="background:var(--surface2);border-radius:10px;padding:12px;text-align:center">
-                    <div style="font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:4px">Net Equity</div>
-                    <div style="font-size:1.2rem;font-weight:900;color:var(--accent)">₱${equity.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
-                </div>
-                <div style="background:var(--surface2);border-radius:10px;padding:12px;text-align:center">
-                    <div style="font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:4px">Dividends</div>
-                    <div style="font-size:1.2rem;font-weight:900;color:var(--primary)">₱${myShare.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
-                </div>
-                <div style="background:var(--surface2);border-radius:10px;padding:12px;text-align:center">
-                    <div style="font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:4px">Outstanding Loan</div>
-                    <div style="font-size:1.2rem;font-weight:900;color:${myLoanVal>0?'var(--danger)':'var(--text3)'}">₱${myLoanVal.toLocaleString()}</div>
-                </div>
-            </div>
-            <div style="font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px">Payment History</div>
-            <div style="max-height:300px;overflow-y:auto">${payRows}</div>`;
-        new bootstrap.Modal(document.getElementById('statementModal')).show();
-    }
-
-    function printStatement() {
-        const content = document.getElementById('statementBody').innerHTML;
-        const printArea = document.getElementById('printArea');
-        printArea.innerHTML = `<style>body{font-family:'DM Sans',sans-serif;padding:2rem} .statement-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #eee}</style>${content}`;
-        printArea.style.display = 'block';
-        window.print();
-        printArea.style.display = 'none';
-    }
-
-    // ===== GLOBAL SEARCH =====
-    function globalSearch(q) {
-        const drop = document.getElementById('globalSearchDropdown');
-        if (!q.trim()) { drop.style.display = 'none'; return; }
-        const members = (appData.members || []).filter(m => m.name.toLowerCase().includes(q.toLowerCase()) || m.email.toLowerCase().includes(q.toLowerCase()));
-        if (!members.length) { drop.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--text3);font-size:0.82rem">No members found</div>'; drop.style.display = 'block'; return; }
-        drop.innerHTML = members.slice(0,6).map((m,i) => {
-            const ri = appData.members.indexOf(m);
-            const c = getMemberContribution(m);
-            return `<div onclick="openStatement(${ri});document.getElementById('globalSearchInput').value='';document.getElementById('globalSearchDropdown').style.display='none'"
-                style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:0.15s"
-                onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
-                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:0.78rem;flex-shrink:0">${m.name[0]}</div>
-                <div><div style="font-weight:700;font-size:0.82rem">${m.name}</div><div style="font-size:0.7rem;color:var(--text3)">₱${c.toLocaleString()} contributed</div></div>
-            </div>`;
-        }).join('');
-        drop.style.display = 'block';
-    }
-    document.addEventListener('click', e => {
-        if (!e.target.closest('#globalSearchWrap') && !e.target.closest('#globalSearchDropdown'))
-            document.getElementById('globalSearchDropdown').style.display = 'none';
-    });
 
     function today() { return new Date().toISOString().split('T')[0]; }
 </script>
