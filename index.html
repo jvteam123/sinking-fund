@@ -1300,6 +1300,32 @@
 </div>
 
 <script>
+    /*
+    ============================================================
+    REQUIRED: FIRESTORE SECURITY RULES
+    Paste these into Firebase Console → Firestore → Rules tab
+    ============================================================
+    rules_version = '2';
+    service cloud.firestore {
+      match /databases/{database}/documents {
+        match /system/main {
+          // Only authenticated users whose email is in the ADMINS list can write
+          allow write: if request.auth != null &&
+            request.auth.token.email in [
+              "ev.lorens.ebrado@gmail.com",
+              "ev.anderson4470@gmail.com"
+            ];
+          // Any authenticated user can read (needed for member dashboard)
+          allow read: if request.auth != null;
+        }
+        // Block all other collections
+        match /{document=**} {
+          allow read, write: if false;
+        }
+      }
+    }
+    ============================================================
+    */
     const firebaseConfig = {
         apiKey: "AIzaSyC5nSdDA5IrA0Gpt_nUcpT2NI0kdGGU3wI",
         authDomain: "sinking-fund-51fcd.firebaseapp.com",
@@ -1309,12 +1335,40 @@
         appId: "1:943953104162:web:872f8dbc6f3fac7c63a97b"
     };
     const ADMINS = ["ev.lorens.ebrado@gmail.com", "ev.anderson4470@gmail.com"];
-    const WIPE_PIN = "MjQ4NjE3";
+    // WIPE_PIN stored as SHA-256 hash — never store plain text or base64 for sensitive pins
+    const WIPE_PIN_HASH = "2f3c8e7c3e08228a27e8e9944aaf907501bfc3b806a6d3bab4a69dba74b0e1da"; // SHA-256 of wipe PIN
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+
+    // ===== OFFLINE DETECTION =====
+    let isOnline = navigator.onLine;
+    let offlineBanner = null;
+    function showOfflineBanner() {
+        if (offlineBanner) return;
+        offlineBanner = document.createElement('div');
+        offlineBanner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#7f1d1d;color:white;text-align:center;padding:10px;font-size:0.82rem;font-weight:700;letter-spacing:0.5px;';
+        offlineBanner.innerHTML = '<i class="fas fa-wifi" style="margin-right:6px;opacity:0.7"></i> You are offline. Changes will not be saved until connection is restored.';
+        document.body.prepend(offlineBanner);
+    }
+    function hideOfflineBanner() { if (offlineBanner) { offlineBanner.remove(); offlineBanner = null; } }
+    window.addEventListener('online', () => { isOnline = true; hideOfflineBanner(); notify('Back online — data sync resumed', 'success'); });
+    window.addEventListener('offline', () => { isOnline = false; showOfflineBanner(); });
+    if (!navigator.onLine) showOfflineBanner();
+
+    // ===== SESSION TIMEOUT (60 min inactivity) =====
+    const SESSION_TIMEOUT_MS = 60 * 60 * 1000;
+    let sessionTimer = null;
+    function resetSessionTimer() {
+        clearTimeout(sessionTimer);
+        sessionTimer = setTimeout(() => {
+            notify('Session expired due to inactivity. Signing out...', 'error');
+            setTimeout(() => auth.signOut().then(() => location.reload()), 2000);
+        }, SESSION_TIMEOUT_MS);
+    }
+    ['click','keydown','mousemove','touchstart'].forEach(e => document.addEventListener(e, resetSessionTimer, { passive: true }));
 
     let appData = { settings: { contri: 100, interest: 5 }, members: [], cycles: ["Jan"], hiddenMonths: [], loans: [], profit: 0, logs: [] };
     let currentLoanPage = 1;
@@ -1355,6 +1409,13 @@
         setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3500);
     }
 
+    // ===== SANITIZE (prevent XSS in innerHTML renders) =====
+    function sanitize(str) {
+        const el = document.createElement('div');
+        el.appendChild(document.createTextNode(String(str || '')));
+        return el.innerHTML;
+    }
+
     // ===== CALCULATIONS =====
     function calculateSystemCash() {
         let total = 0;
@@ -1373,7 +1434,13 @@
     }
 
     // ===== PERSISTENCE =====
-    function save() { db.collection("system").doc("main").set(appData); }
+    function save() {
+        if (!isOnline) { notify('Offline — changes queued and will sync when reconnected', 'error'); }
+        db.collection("system").doc("main").set(appData).catch(err => {
+            console.error('Save failed:', err);
+            notify('Save failed — check your connection', 'error');
+        });
+    }
     function signIn() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function signOut() { auth.signOut().then(() => location.reload()); }
 
@@ -1426,6 +1493,7 @@
                 document.getElementById('navAvatar').innerText = user.displayName ? user.displayName[0].toUpperCase() : 'U';
                 document.getElementById('navName').innerText = user.displayName || user.email;
                 document.getElementById('navRole').innerText = isAdmin ? '🛡 Admin' : '👤 Member';
+                resetSessionTimer(); // start inactivity timeout
 
                 if (isAdmin) {
                     document.getElementById('adminDashboard').style.display = 'block';
@@ -1510,7 +1578,7 @@
         appData.members.forEach((m, mi) => {
             const slots = m.slots || 1;
             let mSum = Number(m.carryOver || 0);
-            let cells = `<td class="ps-3 member-name-cell ${m.banned ? 'opacity-50' : ''}"><b>${m.name}</b> <span class="slot-badge">${slots}x</span><br><small>${m.email}</small></td>`;
+            let cells = `<td class="ps-3 member-name-cell ${m.banned ? 'opacity-50' : ''}"><b>${sanitize(m.name)}</b> <span class="slot-badge">${slots}x</span><br><small>${sanitize(m.email)}</small></td>`;
             m.payments.forEach((p, pi) => {
                 const cy = appData.cycles[Math.floor(pi / 2)];
                 if (p) { const a = contri * slots; mSum += a; columnTotals[pi] += a; }
@@ -1536,8 +1604,8 @@
             const c = getMemberContribution(m);
             const pct = systemTotal > 0 ? (c / systemTotal * 100).toFixed(1) : 0;
             snap += `<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)">
-                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:0.8rem;flex-shrink:0">${m.name[0]}</div>
-                <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:0.85rem">${m.name}</div><div style="height:5px;background:var(--bg);border-radius:99px;margin-top:4px"><div style="height:5px;background:var(--primary-light);border-radius:99px;width:${pct}%"></div></div></div>
+                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:0.8rem;flex-shrink:0">${sanitize(m.name[0])}</div>
+                <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:0.85rem">${sanitize(m.name)}</div><div style="height:5px;background:var(--bg);border-radius:99px;margin-top:4px"><div style="height:5px;background:var(--primary-light);border-radius:99px;width:${pct}%"></div></div></div>
                 <div style="font-family:'DM Mono',monospace;font-size:0.82rem;font-weight:700;flex-shrink:0">₱${c.toLocaleString()}</div>
                 <div style="font-size:0.7rem;color:var(--text3);width:40px;text-align:right">${pct}%</div>
             </div>`;
@@ -1548,9 +1616,9 @@
         const logs = (appData.logs || []).slice(0, 15);
         document.getElementById('auditLogListOverview').innerHTML = logs.map(l => `
             <div class="log-entry">
-                <div class="log-meta"><span class="log-time">${l.time}</span><span class="log-admin">${l.admin}</span></div>
-                <div class="log-action">${l.act}</div>
-                <div class="log-balance">${l.balance || ''}</div>
+                <div class="log-meta"><span class="log-time">${sanitize(l.time)}</span><span class="log-admin">${sanitize(l.admin)}</span></div>
+                <div class="log-action">${sanitize(l.act)}</div>
+                <div class="log-balance">${sanitize(l.balance || '')}</div>
             </div>`).join('') || '<div class="empty-state"><i class="fas fa-history"></i><p>No activity yet</p></div>';
 
         renderPaginatedLoans();
@@ -1571,8 +1639,8 @@
             return `<div class="loan-card">
                 <div class="loan-card-header">
                     <div>
-                        <div class="loan-borrower">${l.borrower}</div>
-                        <div class="loan-ref">Ref #LN-${(oi + 100).toString().padStart(4,'0')} &bull; Released ${l.date}</div>
+                        <div class="loan-borrower">${sanitize(l.borrower)}</div>
+                        <div class="loan-ref">Ref #LN-${(oi + 100).toString().padStart(4,'0')} &bull; Released ${sanitize(l.date)}</div>
                     </div>
                     <span class="loan-badge"><i class="fas fa-circle" style="font-size:0.5rem;margin-right:4px"></i>ACTIVE</span>
                 </div>
@@ -1620,8 +1688,8 @@
             const ri = appData.members.indexOf(m);
             const c = getMemberContribution(m);
             return `<tr>
-                <td style="padding-left:1.5rem"><b>${hl(m.name)}</b><br><small style="color:var(--text3)">${hl(m.email)}</small></td>
-                <td><span class="slot-badge">${m.slots || 1}x</span></td>
+                <td style="padding-left:1.5rem"><b>${hl(sanitize(m.name))}</b><br><small style="color:var(--text3)">${hl(sanitize(m.email))}</small></td>
+                <td><span class="slot-badge">${sanitize(m.slots || 1)}x</span></td>
                 <td style="font-family:'DM Mono',monospace;font-size:0.8rem">₱${Number(m.carryOver||0).toLocaleString()}</td>
                 <td style="font-family:'DM Mono',monospace;font-size:0.8rem">₱${c.toLocaleString()}</td>
                 <td><span class="status-pill ${m.banned ? 'banned' : 'active'}">${m.banned ? 'Banned' : 'Active'}</span></td>
@@ -1637,8 +1705,8 @@
     function renderAuditFull() {
         document.getElementById('auditLogFull').innerHTML = (appData.logs || []).map(l => `
             <div class="log-entry">
-                <div class="log-meta"><span class="log-time">${l.time}</span><span class="log-admin">${l.admin}</span><span class="log-balance">${l.balance || ''}</span></div>
-                <div class="log-action">${l.act}</div>
+                <div class="log-meta"><span class="log-time">${sanitize(l.time)}</span><span class="log-admin">${sanitize(l.admin)}</span><span class="log-balance">${sanitize(l.balance || '')}</span></div>
+                <div class="log-action">${sanitize(l.act)}</div>
             </div>`).join('') || '<div class="empty-state"><i class="fas fa-history"></i><p>No logs yet</p></div>';
     }
 
@@ -2105,12 +2173,18 @@
 
     async function secureSystemWipe() {
         const pin = prompt("Enter Security PIN:");
-        if (btoa(pin) === WIPE_PIN) {
+        if (pin === null) return;
+        const encoder = new TextEncoder();
+        const data = encoder.encode(pin);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        if (hashHex === WIPE_PIN_HASH) {
             showConfirm('SYSTEM HARD RESET', 'DANGER: This will permanently delete ALL financial records. This cannot be undone.', async () => {
                 await db.collection("system").doc("main").set({ settings: { contri: 100, interest: 5 }, members: [], cycles: ["Jan"], loans: [], profit: 0, logs: [], hiddenMonths: [] });
                 location.reload();
             }, 'danger', '💣');
-        } else if (pin !== null) {
+        } else {
             notify('Incorrect PIN', 'error');
         }
     }
