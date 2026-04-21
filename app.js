@@ -203,10 +203,12 @@
                 if (isAdmin) {
                     document.getElementById('adminDashboard').style.display = 'block';
                     document.getElementById('memberDashboard').style.display = 'none';
+                    document.getElementById('mobileNav').style.display = 'flex';
                     renderAdmin();
                 } else {
                     document.getElementById('memberDashboard').style.display = 'block';
                     document.getElementById('adminDashboard').style.display = 'none';
+                    document.getElementById('mobileNav').style.display = 'none';
                     renderMember(user);
                 }
             });
@@ -215,6 +217,20 @@
             document.getElementById('loginPage').style.display = 'flex';
         }
     });
+
+    // ===== MOBILE NAV =====
+    function mobileNav(tab) {
+        showAdminTab(tab);
+        document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
+        const btn = document.getElementById('mnb-' + tab);
+        if (btn) btn.classList.add('active');
+    }
+
+    function syncMobileNavBadge() {
+        const count = (appData.loans || []).length;
+        const badge = document.getElementById('mnbLoanBadge');
+        if (badge) { badge.innerText = count; badge.style.display = count > 0 ? 'block' : 'none'; }
+    }
 
     // ===== TAB NAVIGATION =====
     function showAdminTab(tab) {
@@ -264,6 +280,7 @@
         document.getElementById('loanCountBadge').style.display = loanCount > 0 ? 'block' : 'none';
         document.getElementById('memberCountBadge').innerText = `${appData.members.length} Members`;
         document.getElementById('memberCountText').innerText = `${appData.members.length} registered members`;
+        syncMobileNavBadge();
 
         // Month chips
         document.getElementById('monthSelectors').innerHTML = appData.cycles.map(c =>
