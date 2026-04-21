@@ -698,12 +698,7 @@
                 <button class="sidebar-btn" onclick="showAdminTab('newloan')">
                     <span class="sb-icon" style="background:#fee2e2;color:var(--danger)"><i class="fas fa-hand-holding-usd"></i></span> New Loan
                 </button>
-                <button class="sidebar-btn" onclick="autoAddNextMonth()">
-                    <span class="sb-icon" style="background:#dbeafe;color:var(--primary)"><i class="fas fa-calendar-plus"></i></span> Add Month
-                </button>
-                <button class="sidebar-btn" onclick="removeLastMonth()">
-                    <span class="sb-icon" style="background:#fef3c7;color:var(--warning)"><i class="fas fa-calendar-minus"></i></span> Remove Last Month
-                </button>
+
             </div>
             <div class="sidebar-divider"></div>
             <div class="sidebar-section">
@@ -726,12 +721,14 @@
                     <input type="file" id="importFile" hidden onchange="importBackup()">
                 </label>
                 <button class="sidebar-btn" onclick="showAdminTab('settings')">
-                    <span class="sb-icon"><i class="fas fa-cog"></i></span> Settings
+                    <span class="sb-icon"><i class="fas fa-cog"></i></span> Settings & Cycles
                 </button>
             </div>
+        <div class="sidebar-divider"></div>
+            <div style="padding:0.5rem 0.75rem;font-size:0.6rem;color:var(--text3);text-align:center;font-weight:600;letter-spacing:0.5px;">
+                MSF PRO v2.1 &bull; <span style="color:var(--success)">●</span> Live
+            </div>
         </div>
-
-        <!-- Main Content -->
         <div class="main-content">
             <!-- TAB: OVERVIEW -->
             <div id="tab-overview" class="admin-tab">
@@ -803,12 +800,6 @@
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <div class="month-chips" id="monthSelectors"></div>
-                        <button class="btn-primary-custom" style="width:auto; padding: 0.5rem 1rem; font-size:0.78rem;" onclick="autoAddNextMonth()">
-                            <i class="fas fa-plus"></i> Add Month
-                        </button>
-                        <button class="btn-secondary-custom" style="width:auto; padding: 0.5rem 1rem; font-size:0.78rem;" onclick="removeLastMonth()" id="removeMonthBtn">
-                            <i class="fas fa-minus"></i> Remove Last
-                        </button>
                     </div>
                 </div>
                 <div class="panel">
@@ -983,6 +974,28 @@
                                 <button class="btn-primary-custom" onclick="updateSettings()"><i class="fas fa-save"></i> Save Settings</button>
                             </div>
                         </div>
+                        <!-- Month Cycle Management -->
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="panel-title"><i class="fas fa-calendar-alt"></i> Month Cycle Management</div>
+                                <span id="cycleCountBadge" class="status-pill active">0 Cycles</span>
+                            </div>
+                            <div class="panel-body">
+                                <div style="background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:0.78rem;color:var(--text2);border:1px solid var(--border);">
+                                    <i class="fas fa-info-circle me-1" style="color:var(--primary)"></i>
+                                    <strong>Admin-only action.</strong> Adding or removing months permanently affects all member payment records. Proceed with care.
+                                </div>
+                                <div id="settingsCycleChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;"></div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                                    <button class="btn-primary-custom" onclick="confirmAddMonth()">
+                                        <i class="fas fa-calendar-plus"></i> Add Next Month
+                                    </button>
+                                    <button class="btn-secondary-custom" onclick="confirmRemoveMonth()" id="settingsRemoveMonthBtn">
+                                        <i class="fas fa-calendar-minus"></i> Remove Last Month
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                         <div class="panel">
                             <div class="panel-header"><div class="panel-title"><i class="fas fa-database"></i> Data Management</div></div>
                             <div class="panel-body" style="display:flex; flex-direction:column; gap:10px;">
@@ -1005,44 +1018,164 @@
 <!-- ===== MEMBER DASHBOARD ===== -->
 <div id="memberDashboard" style="display:none">
     <nav id="topNav2" style="display:none"></nav>
-    <div class="main-content" style="max-width: 960px; margin: 0 auto;">
+    <div class="main-content" style="max-width: 1000px; margin: 0 auto;">
+        <!-- Hero -->
         <div class="member-hero">
             <div class="row align-items-center">
                 <div class="col-md-7">
                     <div class="member-hero-tag"><i class="fas fa-check-circle me-1"></i> VERIFIED SHAREHOLDER</div>
                     <div class="member-hero-name" id="mDashName">...</div>
-                    <div class="member-hero-meta"><i class="fas fa-id-card"></i> Sinking Fund Member &bull; <span id="mDashSlotLabel" class="fw-bold" style="color:rgba(255,255,255,0.8)">--</span></div>
+                    <div class="member-hero-meta">
+                        <i class="fas fa-id-card"></i> Sinking Fund Member &bull;
+                        <span id="mDashSlotLabel" class="fw-bold" style="color:rgba(255,255,255,0.8)">--</span>
+                        &bull; <span id="mDashEmail" style="color:rgba(255,255,255,0.4);font-size:0.76rem"></span>
+                    </div>
+                    <div style="margin-top:1rem;display:flex;gap:10px;flex-wrap:wrap;">
+                        <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:8px 14px;">
+                            <div style="font-size:0.58rem;text-transform:uppercase;letter-spacing:1px;opacity:0.5;font-weight:800;">Payments Made</div>
+                            <div id="mDashPaidCount" style="font-size:1.1rem;font-weight:900;color:#34d399;font-family:'DM Mono',monospace;">0</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:8px 14px;">
+                            <div style="font-size:0.58rem;text-transform:uppercase;letter-spacing:1px;opacity:0.5;font-weight:800;">Pending</div>
+                            <div id="mDashPendingCount" style="font-size:1.1rem;font-weight:900;color:#fb923c;font-family:'DM Mono',monospace;">0</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:8px 14px;">
+                            <div style="font-size:0.58rem;text-transform:uppercase;letter-spacing:1px;opacity:0.5;font-weight:800;">Fund Share</div>
+                            <div id="mDashSharePct" style="font-size:1.1rem;font-weight:900;color:#93c5fd;font-family:'DM Mono',monospace;">0%</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-5 mt-4 mt-md-0 text-md-end">
                     <div class="equity-box">
-                        <div class="equity-label">Current Equity Value</div>
+                        <div class="equity-label">Net Equity Value</div>
                         <div class="equity-value" id="mDashTotalEquity">₱0</div>
+                        <div style="margin-top:8px;font-size:0.65rem;opacity:0.5;font-weight:700;letter-spacing:0.5px;">Contributions + Dividends − Loans</div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Fund Cards -->
         <div class="fund-cards-row">
             <div class="fund-card" style="border-top: 4px solid var(--success);">
-                <div class="fund-label">Principal Contribution</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.5rem;">
+                    <div style="width:30px;height:30px;border-radius:8px;background:#d1fae5;display:flex;align-items:center;justify-content:center;color:var(--success);font-size:0.8rem;"><i class="fas fa-piggy-bank"></i></div>
+                    <div class="fund-label" style="margin:0">Principal Contribution</div>
+                </div>
                 <div class="fund-value" id="mDashContri" style="color:var(--success)">₱0</div>
+                <div id="mDashContriSub" style="font-size:0.68rem;color:var(--text3);margin-top:4px;">Including carry-over</div>
             </div>
             <div class="fund-card" style="border-top: 4px solid var(--primary);">
-                <div class="fund-label">Earned Dividends</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.5rem;">
+                    <div style="width:30px;height:30px;border-radius:8px;background:#dbeafe;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:0.8rem;"><i class="fas fa-chart-pie"></i></div>
+                    <div class="fund-label" style="margin:0">Earned Dividends</div>
+                </div>
                 <div class="fund-value" id="mDashShare" style="color:var(--primary)">₱0</div>
+                <div id="mDashShareSub" style="font-size:0.68rem;color:var(--text3);margin-top:4px;">Proportional to share</div>
             </div>
             <div class="fund-card" style="border-top: 4px solid var(--danger);">
-                <div class="fund-label">Outstanding Loan</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.5rem;">
+                    <div style="width:30px;height:30px;border-radius:8px;background:#fee2e2;display:flex;align-items:center;justify-content:center;color:var(--danger);font-size:0.8rem;"><i class="fas fa-file-invoice-dollar"></i></div>
+                    <div class="fund-label" style="margin:0">Outstanding Loan</div>
+                </div>
                 <div class="fund-value" id="mDashLoan" style="color:var(--danger)">₱0</div>
+                <div id="mDashLoanSub" style="font-size:0.68rem;color:var(--text3);margin-top:4px;">Principal + interest</div>
             </div>
         </div>
+
+        <!-- Fund Health & Loan Info row -->
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <div class="panel" style="height:100%">
+                    <div class="panel-header">
+                        <div class="panel-title"><i class="fas fa-tachometer-alt"></i> Fund Health</div>
+                        <span id="mFundHealthBadge" class="status-pill active">Healthy</span>
+                    </div>
+                    <div class="panel-body">
+                        <div style="margin-bottom:12px;">
+                            <div style="display:flex;justify-content:space-between;font-size:0.72rem;font-weight:700;color:var(--text2);margin-bottom:6px;">
+                                <span>Your Contribution vs Fund Total</span>
+                                <span id="mSharePctLabel" style="color:var(--primary)">0%</span>
+                            </div>
+                            <div style="height:8px;background:var(--bg);border-radius:99px;overflow:hidden;">
+                                <div id="mShareBar" style="height:8px;background:linear-gradient(90deg,var(--primary),var(--primary-light));border-radius:99px;width:0%;transition:width 0.8s ease;"></div>
+                            </div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+                            <div class="quick-stat">
+                                <div class="qs-label">Fund Total (All Members)</div>
+                                <div class="qs-value" id="mFundTotal">₱0</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="qs-label">Total Loan Interest Earned</div>
+                                <div class="qs-value" id="mFundProfit" style="color:var(--warning)">₱0</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="qs-label">Cash on Hand</div>
+                                <div class="qs-value" id="mFundCash" style="color:var(--success)">₱0</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="qs-label">Active Loans (System)</div>
+                                <div class="qs-value" id="mFundLoans" style="color:var(--danger)">₱0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="panel" id="mLoanPanel" style="height:100%;display:none">
+                    <div class="panel-header">
+                        <div class="panel-title" style="color:var(--danger)"><i class="fas fa-file-invoice-dollar"></i> Your Active Loan</div>
+                        <span class="loan-badge"><i class="fas fa-circle" style="font-size:0.5rem;margin-right:4px"></i>ACTIVE</span>
+                    </div>
+                    <div class="panel-body">
+                        <div class="loan-data">
+                            <div class="loan-row"><span class="loan-lbl">Borrower</span><span class="loan-val" id="mLoanBorrower">—</span></div>
+                            <div class="loan-row"><span class="loan-lbl">Principal Remaining</span><span class="loan-val" id="mLoanPrincipal">₱0</span></div>
+                            <div class="loan-row"><span class="loan-lbl">Interest (<span id="mLoanRate">0</span>%)</span><span class="loan-val" style="color:var(--primary)" id="mLoanInterest">₱0</span></div>
+                            <div class="loan-sep"></div>
+                            <div class="loan-row"><span class="loan-lbl">Total Payable</span><span class="loan-total" id="mLoanTotal">₱0</span></div>
+                            <div class="loan-row"><span class="loan-lbl">Date Released</span><span class="loan-val" id="mLoanDate" style="color:var(--text3)">—</span></div>
+                        </div>
+                        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 14px;font-size:0.75rem;color:#92400e;font-weight:600;">
+                            <i class="fas fa-info-circle me-1"></i> Contact your admin to arrange payment or amortization.
+                        </div>
+                    </div>
+                </div>
+                <div class="panel" id="mNoLoanPanel" style="height:100%">
+                    <div class="panel-header"><div class="panel-title"><i class="fas fa-check-circle" style="color:var(--success)"></i> Loan Status</div></div>
+                    <div class="panel-body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;">
+                        <div style="width:56px;height:56px;border-radius:50%;background:#d1fae5;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1rem;">✅</div>
+                        <div style="font-weight:800;font-size:0.95rem;margin-bottom:0.4rem;color:var(--success)">No Active Loan</div>
+                        <div style="font-size:0.78rem;color:var(--text3)">You currently have no outstanding loan with the fund.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment History -->
         <div class="panel">
             <div class="panel-header">
                 <div class="panel-title"><i class="fas fa-calendar-check"></i> Payment History</div>
                 <div id="mPaymentSummary" class="status-pill active">0 / 0 Paid</div>
             </div>
             <div class="panel-body">
+                <div id="mPaymentProgressBar" style="margin-bottom:14px;">
+                    <div style="display:flex;justify-content:space-between;font-size:0.68rem;font-weight:700;color:var(--text3);margin-bottom:6px;">
+                        <span>Overall Payment Completion</span>
+                        <span id="mPayCompletionPct">0%</span>
+                    </div>
+                    <div style="height:6px;background:var(--bg);border-radius:99px;overflow:hidden;">
+                        <div id="mPayCompletionBar" style="height:6px;background:linear-gradient(90deg,var(--success),#34d399);border-radius:99px;width:0%;transition:width 0.8s ease;"></div>
+                    </div>
+                </div>
                 <div id="paymentTimeline" class="payment-grid"></div>
             </div>
+        </div>
+
+        <!-- Footer note -->
+        <div style="text-align:center;padding:1rem;font-size:0.72rem;color:var(--text3);">
+            <i class="fas fa-lock me-1"></i> Your data is secured and managed by MSF PRO administrators. For inquiries, contact your fund admin.
         </div>
     </div>
 </div>
@@ -1270,13 +1403,21 @@
 
                 const email = user.email.toLowerCase();
                 const isAdmin = ADMINS.includes(email);
-                const isMember = appData.members.some(m => m.email.toLowerCase() === email);
+                const memberRecord = appData.members.find(m => m.email.toLowerCase() === email);
+                const isMember = !!memberRecord;
+                const isBanned = memberRecord && memberRecord.banned;
 
                 hideLoading();
 
                 if (!isAdmin && !isMember) {
                     notify(`Unauthorized: ${user.email} is not registered.`, 'error');
                     setTimeout(() => { auth.signOut().then(() => location.reload()); }, 2500);
+                    return;
+                }
+
+                if (!isAdmin && isBanned) {
+                    notify(`Access denied: Your account has been suspended. Contact your admin.`, 'error');
+                    setTimeout(() => { auth.signOut().then(() => location.reload()); }, 3000);
                     return;
                 }
 
@@ -1317,6 +1458,7 @@
         if (tab === 'settings') {
             document.getElementById('setConfigAmount').value = appData.settings.contri;
             document.getElementById('setConfigInterest').value = appData.settings.interest;
+            renderSettingsCycles();
         }
         if (tab === 'newloan') {
             document.getElementById('loanMemberSelect').innerHTML = appData.members.filter(m=>!m.banned).map(m => `<option value="${m.name}">${m.name}</option>`).join('');
@@ -1504,31 +1646,89 @@
     function renderMember(user) {
         const m = appData.members.find(x => x.email.toLowerCase() === user.email.toLowerCase());
         if (!m) return;
+
+        // System totals
         let totalSys = 0;
         appData.members.forEach(me => { totalSys += getMemberContribution(me); });
+        const activeLoanPrincipal = (appData.loans || []).reduce((a, l) => a + Number(l.principal), 0);
+        const systemCash = totalSys + (appData.profit || 0) - activeLoanPrincipal;
+
+        // Member calcs
         const myC = getMemberContribution(m);
         const myShare = totalSys > 0 ? (myC / totalSys * (appData.profit || 0)) : 0;
+        const sharePct = totalSys > 0 ? (myC / totalSys * 100) : 0;
         const myLoan = appData.loans.find(l => l.borrower === m.name);
-        const myLoanVal = myLoan ? (myLoan.principal * (1 + appData.settings.interest / 100)) : 0;
+        const myLoanPrincipal = myLoan ? Number(myLoan.principal) : 0;
+        const myLoanInterest = myLoanPrincipal * (appData.settings.interest / 100);
+        const myLoanTotal = myLoanPrincipal + myLoanInterest;
+        const netEquity = myC + myShare - myLoanTotal;
 
+        // Payment counts
+        const paidCount = (m.payments || []).filter(Boolean).length;
+        const totalCount = (m.payments || []).length;
+        const pendingCount = totalCount - paidCount;
+        const completionPct = totalCount > 0 ? Math.round(paidCount / totalCount * 100) : 0;
+
+        // Hero section
         document.getElementById('mDashName').innerText = m.name;
         document.getElementById('mDashSlotLabel').innerText = `${m.slots || 1} Slot(s)`;
-        document.getElementById('mDashTotalEquity').innerText = `₱${(myC + myShare - myLoanVal).toLocaleString(undefined, {maximumFractionDigits:0})}`;
+        document.getElementById('mDashEmail').innerText = m.email;
+        document.getElementById('mDashPaidCount').innerText = paidCount;
+        document.getElementById('mDashPendingCount').innerText = pendingCount;
+        document.getElementById('mDashSharePct').innerText = `${sharePct.toFixed(1)}%`;
+
+        // Equity
+        document.getElementById('mDashTotalEquity').innerText = `₱${netEquity.toLocaleString(undefined, {maximumFractionDigits:0})}`;
+
+        // Fund cards
         document.getElementById('mDashContri').innerText = `₱${myC.toLocaleString()}`;
+        document.getElementById('mDashContriSub').innerText = m.carryOver > 0 ? `Incl. ₱${Number(m.carryOver).toLocaleString()} carry-over` : 'From contributions only';
         document.getElementById('mDashShare').innerText = `₱${myShare.toLocaleString(undefined, {maximumFractionDigits:0})}`;
-        document.getElementById('mDashLoan').innerText = myLoanVal > 0 ? `₱${myLoanVal.toLocaleString()}` : '₱0';
+        document.getElementById('mDashShareSub').innerText = `${sharePct.toFixed(2)}% of total fund`;
+        document.getElementById('mDashLoan').innerText = myLoanTotal > 0 ? `₱${myLoanTotal.toLocaleString()}` : '₱0';
+        document.getElementById('mDashLoanSub').innerText = myLoan ? `Principal + ${appData.settings.interest}% interest` : 'No active loan';
 
-        const paidCount = (m.payments || []).filter(Boolean).length;
-        const totalSlots = (m.payments || []).length;
-        document.getElementById('mPaymentSummary').innerText = `${paidCount} / ${totalSlots} Paid`;
-        document.getElementById('mPaymentSummary').className = `status-pill ${paidCount === totalSlots ? 'active' : ''}`;
+        // Fund health
+        document.getElementById('mFundTotal').innerText = `₱${(totalSys + (appData.profit || 0)).toLocaleString()}`;
+        document.getElementById('mFundProfit').innerText = `₱${(appData.profit || 0).toLocaleString()}`;
+        document.getElementById('mFundCash').innerText = `₱${systemCash.toLocaleString()}`;
+        document.getElementById('mFundLoans').innerText = `₱${activeLoanPrincipal.toLocaleString()}`;
+        document.getElementById('mSharePctLabel').innerText = `${sharePct.toFixed(1)}%`;
+        document.getElementById('mShareBar').style.width = `${Math.min(sharePct, 100)}%`;
+        const healthBadge = document.getElementById('mFundHealthBadge');
+        const ratio = totalSys > 0 ? activeLoanPrincipal / (totalSys + (appData.profit || 0)) : 0;
+        if (ratio < 0.4) { healthBadge.innerText = 'Healthy'; healthBadge.className = 'status-pill active'; }
+        else if (ratio < 0.7) { healthBadge.innerText = 'Moderate'; healthBadge.className = 'status-pill'; healthBadge.style.background='#fef3c7'; healthBadge.style.color='#92400e'; }
+        else { healthBadge.innerText = 'High Exposure'; healthBadge.className = 'status-pill banned'; }
 
+        // Loan panel toggle
+        if (myLoan) {
+            document.getElementById('mLoanPanel').style.display = 'block';
+            document.getElementById('mNoLoanPanel').style.display = 'none';
+            document.getElementById('mLoanBorrower').innerText = myLoan.borrower;
+            document.getElementById('mLoanPrincipal').innerText = `₱${myLoanPrincipal.toLocaleString()}`;
+            document.getElementById('mLoanRate').innerText = appData.settings.interest;
+            document.getElementById('mLoanInterest').innerText = `₱${myLoanInterest.toLocaleString()}`;
+            document.getElementById('mLoanTotal').innerText = `₱${myLoanTotal.toLocaleString()}`;
+            document.getElementById('mLoanDate').innerText = myLoan.date || '—';
+        } else {
+            document.getElementById('mLoanPanel').style.display = 'none';
+            document.getElementById('mNoLoanPanel').style.display = 'block';
+        }
+
+        // Payment summary
+        document.getElementById('mPaymentSummary').innerText = `${paidCount} / ${totalCount} Paid`;
+        document.getElementById('mPaymentSummary').className = `status-pill ${paidCount === totalCount && totalCount > 0 ? 'active' : ''}`;
+        document.getElementById('mPayCompletionPct').innerText = `${completionPct}%`;
+        document.getElementById('mPayCompletionBar').style.width = `${completionPct}%`;
+
+        // Payment grid
         document.getElementById('paymentTimeline').innerHTML = (m.payments || []).map((p, i) => `
             <div class="payment-box ${p ? 'paid' : 'pending'}">
-                <div class="pb-cycle">${appData.cycles[Math.floor(i / 2)]} ${i % 2 === 0 ? '15th' : '30th'}</div>
+                <div class="pb-cycle">${appData.cycles[Math.floor(i / 2)] || ''} ${i % 2 === 0 ? '15th' : '30th'}</div>
                 <div class="pb-icon">${p ? '✅' : '⬜'}</div>
                 <div class="pb-status">${p ? 'PAID' : 'PENDING'}</div>
-            </div>`).join('');
+            </div>`).join('') || '<div class="empty-state"><i class="fas fa-calendar"></i><p>No payment cycles yet</p></div>';
     }
 
     // ===== PAYMENT CONFIRMATION =====
@@ -1740,6 +1940,45 @@
         }, 'success', '✅');
     }
 
+    // ===== SETTINGS CYCLE RENDER =====
+    function renderSettingsCycles() {
+        const chips = document.getElementById('settingsCycleChips');
+        const badge = document.getElementById('cycleCountBadge');
+        const removeBtn = document.getElementById('settingsRemoveMonthBtn');
+        if (!chips) return;
+        if (badge) badge.innerText = `${appData.cycles.length} Cycle${appData.cycles.length !== 1 ? 's' : ''}`;
+        chips.innerHTML = appData.cycles.map((c, i) => `
+            <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:8px;font-size:0.72rem;font-weight:700;background:${i === appData.cycles.length - 1 ? '#dbeafe' : 'var(--bg)'};color:${i === appData.cycles.length - 1 ? 'var(--primary)' : 'var(--text2)'};border:1px solid ${i === appData.cycles.length - 1 ? '#93c5fd' : 'var(--border)'};">
+                ${i === appData.cycles.length - 1 ? '<i class="fas fa-arrow-right" style="font-size:0.55rem"></i>' : ''} ${c}
+            </span>`).join('');
+        if (removeBtn) removeBtn.disabled = appData.cycles.length <= 1;
+    }
+
+    function confirmAddMonth() {
+        const last = appData.cycles[appData.cycles.length - 1];
+        const next = monthNames[(monthNames.indexOf(last) + 1) % 12];
+        showConfirm('Add Month Cycle', `Add "${next}" as the next payment cycle? This will add 2 payment slots (15th & 30th) for all ${appData.members.length} member(s).`, () => {
+            autoAddNextMonth();
+            renderSettingsCycles();
+        }, 'success', '📅');
+    }
+
+    function confirmRemoveMonth() {
+        if (appData.cycles.length <= 1) { notify('Cannot remove the only remaining month', 'error'); return; }
+        const last = appData.cycles[appData.cycles.length - 1];
+        const hasPayments = appData.members.some(m => {
+            const len = (m.payments || []).length;
+            return len >= 2 && (m.payments[len - 1] || m.payments[len - 2]);
+        });
+        const msg = hasPayments
+            ? `⚠️ Some members have payments recorded for "${last}". Removing this month will PERMANENTLY delete those payment records. Are you absolutely sure?`
+            : `Remove the month cycle "${last}"? This will remove the two payment slots (15th & 30th) for all members.`;
+        showConfirm(`Remove "${last}"?`, msg, () => {
+            removeLastMonth();
+            renderSettingsCycles();
+        }, 'danger', '🗑️');
+    }
+
     // ===== MONTH CYCLE =====
     function autoAddNextMonth() {
         const last = appData.cycles[appData.cycles.length - 1];
@@ -1839,8 +2078,12 @@
         if (!file) return;
         const r = new FileReader();
         r.onload = e => {
-            try { appData = JSON.parse(e.target.result); save(); notify('System Restored'); }
-            catch (err) { notify('Invalid backup file', 'error'); }
+            try {
+                const parsed = JSON.parse(e.target.result);
+                showConfirm('Restore Backup', 'This will overwrite ALL current data with the backup file. This cannot be undone. Continue?', () => {
+                    appData = parsed; save(); notify('System Restored from backup');
+                }, 'danger', '📂');
+            } catch (err) { notify('Invalid backup file', 'error'); }
         };
         r.readAsText(file);
     }
@@ -1850,8 +2093,12 @@
         if (!file) return;
         const r = new FileReader();
         r.onload = e => {
-            try { appData = JSON.parse(e.target.result); save(); notify('System Restored'); }
-            catch (err) { notify('Invalid backup file', 'error'); }
+            try {
+                const parsed = JSON.parse(e.target.result);
+                showConfirm('Restore Backup', 'This will overwrite ALL current data with the backup file. This cannot be undone. Continue?', () => {
+                    appData = parsed; save(); notify('System Restored from backup');
+                }, 'danger', '📂');
+            } catch (err) { notify('Invalid backup file', 'error'); }
         };
         r.readAsText(file);
     }
