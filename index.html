@@ -1300,32 +1300,6 @@
 </div>
 
 <script>
-    /*
-    ============================================================
-    REQUIRED: FIRESTORE SECURITY RULES
-    Paste these into Firebase Console → Firestore → Rules tab
-    ============================================================
-    rules_version = '2';
-    service cloud.firestore {
-      match /databases/{database}/documents {
-        match /system/main {
-          // Only authenticated users whose email is in the ADMINS list can write
-          allow write: if request.auth != null &&
-            request.auth.token.email in [
-              "ev.lorens.ebrado@gmail.com",
-              "ev.anderson4470@gmail.com"
-            ];
-          // Any authenticated user can read (needed for member dashboard)
-          allow read: if request.auth != null;
-        }
-        // Block all other collections
-        match /{document=**} {
-          allow read, write: if false;
-        }
-      }
-    }
-    ============================================================
-    */
     const firebaseConfig = {
         apiKey: "AIzaSyC5nSdDA5IrA0Gpt_nUcpT2NI0kdGGU3wI",
         authDomain: "sinking-fund-51fcd.firebaseapp.com",
