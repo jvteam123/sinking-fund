@@ -701,6 +701,9 @@
                 <button class="sidebar-btn" onclick="autoAddNextMonth()">
                     <span class="sb-icon" style="background:#dbeafe;color:var(--primary)"><i class="fas fa-calendar-plus"></i></span> Add Month
                 </button>
+                <button class="sidebar-btn" onclick="removeLastMonth()">
+                    <span class="sb-icon" style="background:#fef3c7;color:var(--warning)"><i class="fas fa-calendar-minus"></i></span> Remove Last Month
+                </button>
             </div>
             <div class="sidebar-divider"></div>
             <div class="sidebar-section">
@@ -802,6 +805,9 @@
                         <div class="month-chips" id="monthSelectors"></div>
                         <button class="btn-primary-custom" style="width:auto; padding: 0.5rem 1rem; font-size:0.78rem;" onclick="autoAddNextMonth()">
                             <i class="fas fa-plus"></i> Add Month
+                        </button>
+                        <button class="btn-secondary-custom" style="width:auto; padding: 0.5rem 1rem; font-size:0.78rem;" onclick="removeLastMonth()" id="removeMonthBtn">
+                            <i class="fas fa-minus"></i> Remove Last
                         </button>
                     </div>
                 </div>
@@ -1743,6 +1749,39 @@
         logAction(`New Cycle Added: ${next}`);
         save();
         notify(`Month "${next}" added`);
+    }
+
+    function removeLastMonth() {
+        if (appData.cycles.length <= 1) { notify('Cannot remove the only remaining month', 'error'); return; }
+        const last = appData.cycles[appData.cycles.length - 1];
+        // Check if the last month has any payments recorded
+        const hasPayments = appData.members.some(m => {
+            const len = (m.payments || []).length;
+            return len >= 2 && (m.payments[len - 1] || m.payments[len - 2]);
+        });
+        const doRemove = () => {
+            appData.cycles.pop();
+            appData.members.forEach(m => {
+                if (m.payments && m.payments.length >= 2) {
+                    m.payments.splice(-2, 2);
+                }
+            });
+            logAction(`Cycle Removed: ${last}`);
+            save();
+            notify(`Month "${last}" removed`);
+            renderAdmin();
+        };
+        if (hasPayments) {
+            showConfirm(
+                `Remove "${last}"?`,
+                `Some members have payments recorded for ${last}. Removing this month will delete those payment records permanently.`,
+                doRemove,
+                'danger',
+                '⚠️'
+            );
+        } else {
+            doRemove();
+        }
     }
 
     // ===== SETTINGS =====
